@@ -1,0 +1,17 @@
+signature MAIN =
+sig
+end
+
+structure Main : MAIN =
+struct
+local
+    structure LU = ListUtil
+    structure F = Form
+in
+
+fun generate filename =
+    let val input = F.input filename
+    in if Inf.checkInfProp input then Ages.ages input else Mace.mace input 10
+    end 
+end
+end 

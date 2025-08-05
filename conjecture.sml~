@@ -1,0 +1,37 @@
+(*
+get description representing properties which have no finite model, and call external theorem prover.
+ *)
+signature CONJECTURE =
+sig
+    val makeConjecture: Property.property -> string
+(*    val checkInfinity: string -> bool *)
+end
+
+structure Conjecture : CONJECTURE =
+struct
+local
+    structure P = Property
+in
+fun makeConjecture (P.INO (P.Eq,symbolF,argsF)) =
+    let fun toStringINO symbol args consts =
+	    let val const = "$C" ^ (Int.toString (length consts + 1))
+		fun getArgs var [] _ = []
+		  | getArgs var (arg::restArgs) [] = if arg = 1 then raise Fail "Error: invailid args" else var::(getArgs var restArgs [])
+		  | getArgs var (arg::restArgs) (const::restConsts) = if arg = 1 then const::(getArgs var restArgs restConsts) else var::(getArgs var restArgs (const::restConsts))
+		fun applyConsts symbol args = symbol ^ "(" ^ (String.concatWith "," args) ^ ")"
+		val inj = "(" ^ (applyConsts symbolF (getArgs "x" argsF consts)) ^ "=" ^ (applyConsts symbolF (getArgs "y" argsF consts)) ^ "->x=y)"
+		val notOnto = "(" ^ "exists " ^ const ^ " (" ^ (applyConsts symbolF (getArgs "x" argsF consts)) ^ "!=" ^ const ^ "))"
+	    in "all x all y (" ^ inj ^ "&" ^ notOnto ^ ")"
+	    end
+	val existNum = length (List.filter (fn x => x = 1) argsF)
+	val existConsts = List.map (fn x => "$C" ^ Int.toString x) (List.tabulate (existNum,fn x => x + 1))
+	val formula = toStringINO symbolF argsF existConsts
+    in if existNum = 0 then formula else (String.concatWith " " (List.map (fn str => "exists " ^ str) existConsts)) ^ " (" ^ formula ^ ")."
+    end 
+  | makeConjecture (P.INO (P.Pred (symbolP,argsP),symbolF,argsF)) = " "
+  | makeConjecture (P.ONI (symbol,args)) = " "
+  | makeConjecture (P.Serial (P.Pred (symbolP,argsP),symbolF,argsF)) = " "
+  | makeConjecture (P.Serial (Eq,_,_)) = ""
+    
+end
+end

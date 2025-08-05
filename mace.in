@@ -1,0 +1,7 @@
+assign(max_seconds, 10).
+formulas(theory).
+all x (f(e,x)=x).
+all x (f(g(x),x)=e).
+all x (all y (all z (f(x,f(y,z))=f(f(x,y),z)))).
+f(a,b)!=f(b,a).
+end_of_list.

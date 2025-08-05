@@ -1,0 +1,148 @@
+signature PROPERTY =
+sig
+    type fixedArgs = int list
+    datatype relation = Eq | Pred of Form.pred_key * fixedArgs
+    datatype property = INO of relation * Term.fun_key * fixedArgs
+		      | ONI of Term.fun_key * fixedArgs
+		      | Serial of relation * Term.fun_key * fixedArgs
+
+    val getSymbolsFun: Form.form list -> (Term.fun_key * int) list
+    val getSymbolsPred: Form.form list -> (Form.pred_key * int) list
+    val makeInjNotOntoEq: (Term.fun_key * int) list -> property list
+    val makeBinRel: (Form.pred_key * int) list -> relation list
+    val makeInjNotOntoPreds: relation list -> (Term.fun_key * int) list -> property list
+    val makeOntoNotInj: (Term.fun_key * int) list -> property list
+    val makeSerials: relation list -> (Term.fun_key * int) list -> property list
+    val makeConjecture: property -> string list
+end
+
+structure Property :PROPERTY =
+struct
+local
+    structure LU = ListUtil
+    structure F = Form
+in
+type fixedArgs = int list
+datatype relation = Eq | Pred of F.pred_key * fixedArgs
+datatype property = INO of relation * Term.fun_key * fixedArgs
+		  | ONI of Term.fun_key * fixedArgs
+		  | Serial of relation * Term.fun_key * fixedArgs
+
+fun getSymbolsFun forms = List.filter (fn (f,k) => k > 0) (F.getArsFun forms)
+				     
+fun getSymbolsPred forms = List.filter (fn (p,k) => p <> "=") (F.getArsPred forms)
+				      					     
+fun makeInjNotOntoEq [] = []
+  | makeInjNotOntoEq ((symbol,arity)::rest) =
+    let fun partial (symbol,arity) = List.map (fn xs => INO (Eq,symbol,xs)) (tl (LU.combinations arity [1,0]))
+    in if arity = 1 then (INO (Eq,symbol,[0]))::(makeInjNotOntoEq rest) else (partial (symbol,arity)) @ (makeInjNotOntoEq rest)
+    end
+
+fun makeBinRel [] = []
+  | makeBinRel ((symbol,arity)::rest) =
+    let fun partial (symbol,arity) =
+	    let fun countZero xs = length (List.filter (fn x => x = 0) xs)
+		val binary = List.filter (fn xs => countZero xs = 2) (LU.combinations arity [1,0])
+	    in List.map (fn xs => Pred (symbol,xs)) binary
+	    end 
+    in if arity < 2 then makeBinRel rest
+       else if arity = 2 then (Pred (symbol,[0,0]))::(makeBinRel rest)
+       else (partial (symbol,arity)) @ (makeBinRel rest)
+    end
+	
+fun makeInjNotOntoPreds preds funs =
+    let fun makeInjNotOntoPred _ [] = []
+	  | makeInjNotOntoPred pred ((symbol,arity)::rest) =
+	    let fun partial (symbol,arity) = List.map (fn xs => INO (pred,symbol,xs)) (tl (LU.combinations arity [1,0]))
+	    in if arity = 1 then (INO (pred,symbol,[0]))::(makeInjNotOntoPred pred rest) else (partial (symbol,arity)) @ (makeInjNotOntoPred pred rest)
+	    end
+    in List.concat (List.map (fn pred => makeInjNotOntoPred pred funs) preds)
+    end
+	
+fun makeOntoNotInj [] = []
+  | makeOntoNotInj ((symbol,arity)::rest) =
+    let fun partial (symbol,arity) = List.map (fn xs => ONI (symbol,xs)) (tl (LU.combinations arity [1,0]))
+    in if arity = 1 then (ONI (symbol,[0]))::(makeOntoNotInj rest) else (partial (symbol,arity)) @ (makeOntoNotInj rest)
+    end
+
+fun makeSerials preds funs =
+    let fun makeSerial _ [] = []
+	  | makeSerial pred ((symbol,arity)::rest) =
+	    let fun partial (symbol,arity) = List.map (fn xs => Serial (pred,symbol,xs)) (tl (LU.combinations arity [1,0]))
+	    in if arity = 1 then (Serial (pred,symbol,[0]))::(makeSerial pred rest) else (partial (symbol,arity)) @ (makeSerial pred rest)
+	    end 
+    in List.concat (List.map (fn pred => makeSerial pred funs) preds)
+    end 
+
+fun applyConstsFun var symbol args consts =
+    let fun getArgs var [] _ = []
+	  | getArgs var (arg::restArgs) [] = if arg = 1 then raise Fail "Error: invailid args" else var::(getArgs var restArgs [])
+	  | getArgs var (arg::restArgs) (const::restConsts) = if arg = 1 then const::(getArgs var restArgs restConsts) else var::(getArgs var restArgs (const::restConsts))
+    in symbol ^ "(" ^ (String.concatWith "," (getArgs var args consts)) ^ ")"
+    end
+
+fun applyConstsPred vars symbol args consts =
+    let fun getArgs [] [] [] = []
+	  | getArgs [] vars consts = raise Fail "Error: invalid args"
+	  | getArgs args [] [] = raise Fail "Error: invalid args"
+	  | getArgs (arg::restArgs) (var::restVars) [] = if arg = 1 then raise Fail "Error: invailid args" else var::(getArgs restArgs restVars [])
+	  | getArgs (arg::restArgs) [] (const::restConsts) = if arg = 1 then const::(getArgs restArgs [] restConsts) else raise Fail "Error: invalid args"
+	  | getArgs (arg::restArgs) (var::restVars) (const::restConsts) = if arg = 1 then const::(getArgs restArgs (var::restVars) restConsts) else var::(getArgs restArgs restVars (const::restConsts))
+    in symbol ^ "(" ^ (String.concatWith "," (getArgs args vars consts)) ^ ")"
+    end 
+
+fun makeConjecture (INO (Eq,symbolF,argsF)) =
+    let fun toStringINO symbol args consts =
+	    let val inj = "(" ^ (applyConstsFun "x" symbol args consts) ^ "=" ^ (applyConstsFun "y" symbol args consts) ^ "->x=y)"
+		val notOnto = "(" ^ (applyConstsFun "x" symbol args consts) ^ "!=" ^ "$C" ^ ")"
+	    in "exists $C all x all y (" ^ inj ^ "&" ^ notOnto ^ ")"
+	    end
+	val num = length (List.filter (fn x => x = 1) argsF)
+	val consts = List.tabulate (num,fn x => "$C" ^ Int.toString (x + 1))
+	val formula = toStringINO symbolF argsF consts
+    in if num = 0 then [formula] else [(String.concatWith " " (List.map (fn str => "exists " ^ str) consts)) ^ " " ^ formula]
+    end 
+  | makeConjecture (INO (Pred (symbolP,argsP),symbolF,argsF)) =
+    let fun toStringINO symbolF argsF constsF symbolP argsP constsP =
+	    let val refl = applyConstsPred ["x","x"] symbolP argsP constsP
+		val inj = "(" ^ (applyConstsPred [applyConstsFun "x" symbolF argsF constsF,applyConstsFun "y" symbolF argsF constsF] symbolP argsP constsP) ^ "->" ^ (applyConstsPred ["x","y"] symbolP argsP constsP) ^ ")"
+		val leftNotOnto = "(-" ^ (applyConstsPred [applyConstsFun "x" symbolF argsF constsF,"$C"] symbolP argsP constsP) ^ ")"
+		val rightNotOnto = "(-" ^ (applyConstsPred [applyConstsFun "$C" symbolF argsF constsF,"x"] symbolP argsP constsP) ^ ")"
+ 	    in ["exists $C all x all y (" ^ refl ^ "&" ^ inj ^ "&" ^ leftNotOnto ^ ")","exists $C all x all y (" ^ refl ^ "&" ^ inj ^ "&" ^ leftNotOnto ^ ")"] 
+	    end
+	val numP = length (List.filter (fn x => x = 1) argsP)
+	val numF = length (List.filter (fn x => x = 1) argsF)
+	val constsP = List.tabulate (numP,fn x => "$CP" ^ Int.toString (x + 1))
+	val constsF = List.tabulate (numF,fn x => "$CF" ^ Int.toString (x + 1))
+	val formulas = toStringINO symbolF argsF constsF symbolP argsP constsP
+    in if numP + numF = 0 then formulas else List.map (fn formula => (String.concatWith " " (List.map (fn str => "exists " ^ str) (constsP @ constsF))) ^ " " ^ formula) formulas
+    end 
+  | makeConjecture (ONI (symbol,args)) =
+    let fun toStringONI symbol args consts =
+	    let val onto = "(all x exists $C (" ^ (applyConstsFun "$C" symbol args consts) ^ "=x))"
+		val notInj = "(exists $Cx exists $Cy (" ^ (applyConstsFun "$Cx" symbol args consts) ^ "=" ^ (applyConstsFun "$Cy" symbol args consts) ^ "&$Cx!=$Cy))"
+	    in onto ^ "&" ^ notInj
+	    end
+	val num = length (List.filter (fn x => x = 1) args)
+	val consts = List.tabulate (num,fn x => "$C" ^ Int.toString (x + 1))
+	val formula = toStringONI symbol args consts
+    in if num = 0 then [formula] else [(String.concatWith " " (List.map (fn str => "exists " ^ str) consts)) ^ " " ^ formula]
+    end 
+  | makeConjecture (Serial (Pred (symbolP,argsP),symbolF,argsF)) =
+    let fun toStringSerial symbolF argsF constsF symbolP argsP constsP =
+	    let val antiRefl = "(-" ^ (applyConstsPred ["x","x"] symbolP argsP constsP) ^ ")"
+		val trans = "(" ^ (applyConstsPred ["x","y"] symbolP argsP constsP) ^ "&" ^ (applyConstsPred ["y","z"] symbolP argsP constsP) ^ "->" ^ (applyConstsPred ["x","z"] symbolP argsP constsP) ^ ")"
+		val leftSerial = "(" ^ (applyConstsPred ["x","$C"] symbolP argsP constsP) ^ ")"
+		val rightSerial = "(" ^ (applyConstsPred ["$C","x"] symbolP argsP constsP) ^ ")"
+	    in ["all x exists $C all y all z (" ^ antiRefl ^ "&" ^ trans ^ "&" ^ leftSerial ^ ")","all x exists $C all y all z (" ^ antiRefl ^ "&" ^ trans ^ "&" ^ rightSerial ^ ")"]
+	    end
+	val numP = length (List.filter (fn x => x = 1) argsP)
+	val numF = length (List.filter (fn x => x = 1) argsF)
+	val constsP = List.tabulate (numP,fn x => "$CP" ^ Int.toString (x + 1))
+	val constsF = List.tabulate (numF,fn x => "$CF" ^ Int.toString (x + 1))
+	val formulas = toStringSerial symbolF argsF constsF symbolP argsP constsP
+    in if numP + numF = 0 then formulas else List.map (fn formula => (String.concatWith " " (List.map (fn str => "exists " ^ str) (constsP @ constsF))) ^ " " ^ formula) formulas
+    end 
+  | makeConjecture (Serial (Eq,_,_)) = []
+end
+end 

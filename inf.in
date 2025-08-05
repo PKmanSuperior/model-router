@@ -1,0 +1,10 @@
+assign(max_seconds, 1).
+formulas(assumptions).
+all x (all y (f(p(x,y))=x)).
+all x (all y (s(p(x,y))=y)).
+a!=b.
+end_of_list.
+
+formulas(goals).
+exists $C (all x (all y (((p($C1,x)=p($C1,y) -> x=y) & p($C1,x)!=$C)))).
+end_of_list.

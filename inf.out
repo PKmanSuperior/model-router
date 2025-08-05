@@ -1,0 +1,174 @@
+============================== Prover9 ===============================
+Prover9 (64) version 2009-11A, November 2009.
+Process 1246 was started by takizawa on DESKTOP-L5LN107,
+Mon Aug  4 23:34:05 2025
+The command was "./prover9 -f inf.in".
+============================== end of head ===========================
+
+============================== INPUT =================================
+
+% Reading from file inf.in
+
+assign(max_seconds,1).
+
+formulas(assumptions).
+(all x all y f(p(x,y)) = x).
+(all x all y s(p(x,y)) = y).
+a != b.
+end_of_list.
+
+formulas(goals).
+(exists $C all x all y ((p($C1,x) = p($C1,y) -> x = y) & p($C1,x) != $C)).
+end_of_list.
+
+============================== end of input ==========================
+
+============================== PROCESS NON-CLAUSAL FORMULAS ==========
+
+% Formulas that are not ordinary clauses:
+1 (all x all y f(p(x,y)) = x) # label(non_clause).  [assumption].
+2 (all x all y s(p(x,y)) = y) # label(non_clause).  [assumption].
+3 (exists $C all x all y ((p($C1,x) = p($C1,y) -> x = y) & p($C1,x) != $C)) # label(non_clause) # label(goal).  [goal].
+
+============================== end of process non-clausal formulas ===
+
+============================== PROCESS INITIAL CLAUSES ===============
+
+% Clauses before input processing:
+
+formulas(usable).
+end_of_list.
+
+formulas(sos).
+f(p(x,y)) = x.  [clausify(1)].
+s(p(x,y)) = y.  [clausify(2)].
+a != b.  [assumption].
+p($C1,f2(x)) = p($C1,f1(x)) | p($C1,f1(x)) = x.  [deny(3)].
+f2(x) != f1(x) | p($C1,f1(x)) = x.  [deny(3)].
+end_of_list.
+
+formulas(demodulators).
+end_of_list.
+
+============================== PREDICATE ELIMINATION =================
+
+No predicates eliminated.
+
+============================== end predicate elimination =============
+
+Auto_denials:  (non-Horn, no changes).
+
+Term ordering decisions:
+Predicate symbol precedence:  predicate_order([ = ]).
+Function symbol precedence:  function_order([ $C1, a, b, p, f, s, f1, f2 ]).
+After inverse_order:  (no changes).
+Unfolding symbols: (none).
+
+Auto_inference settings:
+  % set(paramodulation).  % (positive equality literals)
+  % set(binary_resolution).  % (non-Horn)
+  % set(neg_ur_resolution).  % (non-Horn, less than 100 clauses)
+
+Auto_process settings:
+  % set(factor).  % (non-Horn)
+  % set(unit_deletion).  % (non-Horn)
+
+kept:      4 f(p(x,y)) = x.  [clausify(1)].
+kept:      5 s(p(x,y)) = y.  [clausify(2)].
+           6 a != b.  [assumption].
+kept:      7 b != a.  [copy(6),flip(a)].
+kept:      8 p($C1,f2(x)) = p($C1,f1(x)) | p($C1,f1(x)) = x.  [deny(3)].
+kept:      9 f2(x) != f1(x) | p($C1,f1(x)) = x.  [deny(3)].
+
+============================== end of process initial clauses ========
+
+============================== CLAUSES FOR SEARCH ====================
+
+% Clauses after input processing:
+
+formulas(usable).
+end_of_list.
+
+formulas(sos).
+4 f(p(x,y)) = x.  [clausify(1)].
+5 s(p(x,y)) = y.  [clausify(2)].
+7 b != a.  [copy(6),flip(a)].
+8 p($C1,f2(x)) = p($C1,f1(x)) | p($C1,f1(x)) = x.  [deny(3)].
+9 f2(x) != f1(x) | p($C1,f1(x)) = x.  [deny(3)].
+end_of_list.
+
+formulas(demodulators).
+4 f(p(x,y)) = x.  [clausify(1)].
+5 s(p(x,y)) = y.  [clausify(2)].
+end_of_list.
+
+============================== end of clauses for search =============
+
+============================== SEARCH ================================
+
+% Starting search at 0.00 seconds.
+
+given #1 (I,wt=6): 4 f(p(x,y)) = x.  [clausify(1)].
+
+given #2 (I,wt=6): 5 s(p(x,y)) = y.  [clausify(2)].
+
+given #3 (I,wt=3): 7 b != a.  [copy(6),flip(a)].
+
+given #4 (I,wt=15): 8 p($C1,f2(x)) = p($C1,f1(x)) | p($C1,f1(x)) = x.  [deny(3)].
+
+given #5 (I,wt=11): 9 f2(x) != f1(x) | p($C1,f1(x)) = x.  [deny(3)].
+
+given #6 (A,wt=11): 10 p($C1,f1(x)) = x | f2(x) = f1(x).  [para(8(a,1),5(a,1,1)),rewrite([5(8)]),flip(b)].
+
+given #7 (T,wt=6): 11 p($C1,f1(x)) = x.  [resolve(10,b,9,a),merge(b)].
+
+given #8 (T,wt=3): 14 $C1 = x.  [back_rewrite(4),rewrite([12(2)])].
+
+============================== PROOF =================================
+
+% Proof 1 at 0.00 (+ 0.00) seconds.
+% Length of proof is 14.
+% Level of proof is 6.
+% Maximum clause weight is 15.000.
+% Given clauses 8.
+
+1 (all x all y f(p(x,y)) = x) # label(non_clause).  [assumption].
+2 (all x all y s(p(x,y)) = y) # label(non_clause).  [assumption].
+3 (exists $C all x all y ((p($C1,x) = p($C1,y) -> x = y) & p($C1,x) != $C)) # label(non_clause) # label(goal).  [goal].
+4 f(p(x,y)) = x.  [clausify(1)].
+5 s(p(x,y)) = y.  [clausify(2)].
+6 a != b.  [assumption].
+7 b != a.  [copy(6),flip(a)].
+8 p($C1,f2(x)) = p($C1,f1(x)) | p($C1,f1(x)) = x.  [deny(3)].
+9 f2(x) != f1(x) | p($C1,f1(x)) = x.  [deny(3)].
+10 p($C1,f1(x)) = x | f2(x) = f1(x).  [para(8(a,1),5(a,1,1)),rewrite([5(8)]),flip(b)].
+11 p($C1,f1(x)) = x.  [resolve(10,b,9,a),merge(b)].
+12 f(x) = $C1.  [para(11(a,1),4(a,1,1))].
+14 $C1 = x.  [back_rewrite(4),rewrite([12(2)])].
+17 $F.  [para(14(a,2),7(a,1)),flip(a),unit_del(a(flip),14)].
+
+============================== end of proof ==========================
+
+============================== STATISTICS ============================
+
+Given=8. Generated=22. Kept=12. proofs=1.
+Usable=3. Sos=3. Demods=4. Limbo=1, Disabled=10. Hints=0.
+Kept_by_rule=0, Deleted_by_rule=0.
+Forward_subsumed=9. Back_subsumed=3.
+Sos_limit_deleted=0. Sos_displaced=0. Sos_removed=0.
+New_demodulators=6 (0 lex), Back_demodulated=2. Back_unit_deleted=0.
+Demod_attempts=154. Demod_rewrites=12.
+Res_instance_prunes=0. Para_instance_prunes=0. Basic_paramod_prunes=0.
+Nonunit_fsub_feature_tests=0. Nonunit_bsub_feature_tests=7.
+Megabytes=0.05.
+User_CPU=0.00, System_CPU=0.00, Wall_clock=0.
+
+============================== end of statistics =====================
+
+============================== end of search =========================
+
+THEOREM PROVED
+
+Exiting with 1 proof.
+
+Process 1246 exit (max_proofs) Mon Aug  4 23:34:05 2025

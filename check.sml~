@@ -1,0 +1,59 @@
+(*
+check whether theory has infinite model property to call zoom,property,conjecture.
+*)
+signature CHECK =
+sig
+    val makeInFile: string list -> string -> unit
+    val runP9: unit -> string
+    val checkInfProp: Form.form list -> bool
+end
+
+structure Check : CHECK =
+struct
+local
+    structure LU = ListUtil
+    structure F = Form
+    structure P = Property
+in
+
+fun makeInFile assumptions conj =
+    let val outStream = TextIO.openOut "inf.in"
+	val _ = TextIO.output (outStream,"formulas(assumptions).\n")
+	fun loop [] = ()
+	  | loop (line::rest) =
+	    let val _ =  TextIO.output (outStream,line^".\n")
+	    in loop rest
+	    end
+	val _ = loop assumptions
+	val _ = TextIO.output (outStream,"end_of_list.\n\n")
+	val _ = TextIO.output (outStream,"formulas(goals).\n")
+	val _ = TextIO.output (outStream,conj^".\n")
+	val _ = TextIO.output (outStream,"end_of_list.\n")
+	val _ = TextIO.closeOut outStream
+    in ()
+    end
+
+fun runP9 () =
+    let val command = "./prover9 -f inf.in > inf.out"
+	val _ = OS.Process.system command
+	val inStream = TextIO.openIn "inf.out"
+	val result = TextIO.inputAll inStream
+	val _ = TextIO.closeIn inStream
+    in result
+    end 
+
+fun checkInfProp forms =
+    let val binaryRel = P.makeBinRel (P.getSymbolsPred forms)
+	val symbolsFun = P.getSymbolsFun forms
+	val properties = (P.makeInjNotOntoEq symbolsFun) @ (P.makeInjNotOntoPreds binaryRel symbolsFun) @ (P.makeOntoNotInj symbolsFun) @ (P.makeSerials binaryRel symbolsFun)
+	val conjList = List.concat (List.map P.makeConjecture properties)
+	fun loopProving _ [] = false
+	  | loopProving strForms (conj::rest) = 
+	    let val _ = makeInFile strForms conj
+		val flag = String.isSubstring "THEOREM PROVED" (runP9 ())
+	    in if flag then true else loopProving strForms rest
+	    end 
+    in loopProving (map toStringForP9 forms) conjList
+    end 
+end
+end 

@@ -1,0 +1,316 @@
+signature AGES =
+sig
+    val makeGeq: Ln.coef list -> Var.key list -> Ln.coef -> Ln.form
+    val makeDomConstraints: unit -> Ln.form list
+    val getPolynomial: Term.fun_key * int -> Ln.form list * Ln.term
+    val algebraicity: Form.form list -> (Ln.form list * Ln.form) list
+    val toLnForm: Form.form -> (Ln.form list * Ln.form) list
+    val toStringConstraints: (Ln.form list * Ln.form) -> string
+    val applyFarkas: (Ln.form list * Ln.form) -> int -> Ln.form list
+    val getConst: Ln.form list -> Ln.const list
+    val cutCoef: Ln.coef -> Ln.coef
+    val toSMT: Ln.form -> string
+    val printSMT: Ln.form list -> unit
+    val readModel: unit -> (string * int) list
+    val printModel: ((Term.fun_key * int) list * (Form.pred_key * int) list) -> (string * int) list -> unit
+    val ages: string -> unit
+end
+    
+structure Ages : AGES =
+struct
+local
+    structure T = Term
+    structure F = Form
+    structure LU = ListUtil		      
+in
+
+fun makeGeq lefts vars right =
+    let val terms = ListPair.zip (lefts,vars)
+	fun getTerm (coef,var) = (coef,Ln.Var var)
+    in Ln.Geq (Ln.Fun (List.map getTerm terms),Ln.Fun [(right,Ln.Var ("0",0))])
+    end 
+
+fun makeDomConstraints () = [makeGeq [[["$c","k"]]] [("0",0)] [["0"]]]
+
+fun getPolynomial (f,k) =
+    let val vars = List.map (fn i => ("x",i)) (List.tabulate (k,fn x => x + 1))
+	val cond = List.concat (List.map (fn x => [makeGeq [[["$c"]]] [x] [["0"]]]) vars)
+	val term = T.Fun (f,List.map (fn x => T.Var x) vars)
+    in (cond,Ln.makeTerm term)
+    end
+
+fun algebraicity forms =
+    let val arities = F.getArsFun forms
+	fun main [] = []
+	  | main (arity::rest) =
+	    let val (cond,Ln.Fun polynomial) = getPolynomial arity
+		val geq = Ln.Geq (Ln.Fun (List.map (fn (coef,t) => (Ln.expandCoef ([["$c"]],coef),t)) polynomial),Ln.Fun [([["0"]],Ln.Var ("0",0))])
+	    in if null cond then (cond,geq)::(main rest) else (cond,Ln.moveTerm geq)::(main rest)
+	    end 
+    in main arities
+    end
+
+fun toLnForm (F.Atom p) =
+    let val vars = F.vars (F.Atom p)
+	val cond = List.concat (List.map (fn x => [makeGeq [[["$c"]]] [x] [["0"]]]) vars)
+    in List.map (fn p => (cond,Ln.moveTerm p)) (Ln.makeForm p)
+    end 
+  | toLnForm (F.Not (F.Atom p)) =
+    let val vars = F.vars (F.Not (F.Atom p))
+	val cond = List.concat (List.map (fn x => [makeGeq [[["$c"]]] [x] [["0"]]]) vars)
+	val [form1,form2] = Ln.makeFormNeg p
+    in [((Ln.moveTerm ((fn Ln.Eq (l,r) => Ln.Eq (Ln.negateTerm l,Ln.negateTerm r)| Ln.Geq (l,r) => Ln.Geq (Ln.negateTerm l,Ln.negateTerm r)) form1))::cond,Ln.moveTerm form2)]
+    end 
+  | toLnForm (F.Imp (p,F.Atom q)) =
+    let val vars = F.vars (F.Imp (p,F.Atom q))
+	val cond = List.concat (List.map (fn x => [makeGeq [[["$c"]]] [x] [["0"]]]) vars)
+	fun margeCond (conds,F.Atom p) = List.map (fn cond => cond @ (List.map Ln.moveTerm (Ln.makeForm p))) conds
+	  | margeCond (conds,F.Not (F.Atom p)) = List.concat (List.map (fn form => List.map (fn cond => (Ln.moveTerm form)::cond) conds) (Ln.makeFormNeg p))
+	  | margeCond _ = []
+	fun toLnFormProper (F.Atom p) conds = margeCond (conds,F.Atom p)
+	  | toLnFormProper (F.Not (F.Atom p)) conds = margeCond (conds,F.Not (F.Atom p))
+	  | toLnFormProper (F.And (p,q)) conds = toLnFormProper p (margeCond (conds,q))
+	  | toLnFormProper _ _ = []
+	val conds = List.map (fn x => cond @ x) (toLnFormProper p [[]])
+	val geqs = List.map Ln.moveTerm (Ln.makeForm q)
+    in List.concat (List.map (fn cond => List.map (fn geq => (cond,geq)) geqs) conds)
+    end
+  | toLnForm (F.Imp (p,F.Not (F.Atom q))) =
+    let val vars = F.vars (F.Imp (p,F.Atom q))
+	val cond = List.concat (List.map (fn x => [makeGeq [[["$c"]]] [x] [["0"]]]) vars)
+	fun margeCond (conds,F.Atom p) = List.map (fn cond => cond @ (List.map Ln.moveTerm (Ln.makeForm p))) conds
+	  | margeCond (conds,F.Not (F.Atom p)) = List.concat (List.map (fn form => List.map (fn cond => form::cond) conds) (Ln.makeFormNeg p))
+	  | margeCond _ = []
+	fun toLnFormProper (F.Atom p) conds = margeCond (conds,F.Atom p)
+	  | toLnFormProper (F.Not (F.Atom p)) conds = margeCond (conds,F.Not (F.Atom p))
+	  | toLnFormProper (F.And (p,q)) conds = toLnFormProper p (margeCond (conds,q))
+	  | toLnFormProper _ _ = []
+     	val form1 = Ln.moveTerm (hd (Ln.makeForm q))
+	val form2 = Ln.moveTerm (List.last (Ln.makeForm q))
+	val conds = List.map (fn x => cond @ x) (toLnFormProper p [[form1]])
+    in List.map (fn cond => (cond,form2)) conds
+    end
+  | toLnForm _ = []
+
+fun toStringConstraints (eqs,eq) = if null eqs then Ln.toStringForm eq else (String.concatWith "&" (List.map Ln.toStringForm eqs)) ^ "=>" ^ (Ln.toStringForm eq)
+
+fun applyFarkas (eqs,eq) i =
+    let fun findCoef (Ln.Fun ts) var = (case List.find (fn (_, Ln.Var v') => var = v' | _ => false) ts of
+					 SOME (c, _) => SOME c
+				       | NONE => SOME [["0"]])
+	  | findCoef (Ln.Var x) var = NONE
+    	fun getMatrixVarFromEq (Ln.Eq (l,r)) vars = List.map (fn var => valOf (findCoef l var)) vars
+	  | getMatrixVarFromEq (Ln.Geq (l,r)) vars = List.map (fn var => valOf (findCoef l var)) vars
+	fun makeLambda i k = List.tabulate (k,(fn x => [[["$L_" ^ Int.toString i ^ "_" ^ Int.toString (x + 1)]]]))
+	fun getConstraintsLambda ls = List.map (fn [lambda] => Ln.Geq (Ln.Fun [(lambda,Ln.Var ("0",0))],Ln.Fun [([["0"]],Ln.Var ("0",0))]) | _ => raise Fail "Error: invalid lambda") ls
+	fun getConstraints A b c beta lambda =
+	    let fun makeEq1 c A lambda =
+		    let val lhMatrix = LU.transpose c
+			val rhMatrix = Ln.calcMatrix (LU.transpose A) lambda
+		    in (lhMatrix,rhMatrix)
+		    end 
+		fun makeEq2 lambda b beta =
+		    let val lhMatrix = Ln.calcMatrix (LU.transpose lambda) b
+			val rhMatrix = beta
+		    in (lhMatrix,rhMatrix)
+		    end
+		fun toEq ([],[]) = []
+		  | toEq ([],_) = raise Fail "Error: longer A (eq)"
+		  | toEq (_,[]) = raise Fail "Error: longer B (eq)"
+		  | toEq (ai::A,bi::B) = (List.map (fn (x,y) => Ln.Eq (Ln.Fun [(x,Ln.Var ("0",0))],Ln.Fun [(y,Ln.Var ("0",0))])) (ListPair.zip (ai,bi))) @ toEq (A,B)
+		fun toGeq ([],[]) = []
+		  | toGeq ([],_) = raise Fail "Error: longer A (geq)"
+		  | toGeq (_,[]) = raise Fail "Error: longer B (geq)"
+		  | toGeq (ai::A,bi::B) = (List.map (fn (x,y) => Ln.Geq (Ln.Fun [(x,Ln.Var ("0",0))],Ln.Fun [(y,Ln.Var ("0",0))])) (ListPair.zip (ai,bi))) @ toGeq (A,B)
+	    in toEq (makeEq1 c A lambda) @ toGeq (makeEq2 lambda b beta)
+	    end 
+    	val vars = LU.unions (List.map (fn Ln.Eq (l,r) => Ln.vars l @ Ln.vars r | Ln.Geq (l,r) => (Ln.vars l @ Ln.vars r)) eqs)
+	val A = List.map (fn eq => getMatrixVarFromEq eq vars) eqs
+	val b = List.map (fn Ln.Eq (l,r) => Ln.getCoef r | Ln.Geq (l,r) => Ln.getCoef r) eqs
+	val c = [getMatrixVarFromEq eq vars]
+	val beta = [(fn Ln.Eq (l,r) => Ln.getCoef r | Ln.Geq (l,r) => Ln.getCoef r) eq]
+	val lambda = makeLambda i (length b)	
+    in getConstraints A b c beta lambda @ getConstraintsLambda lambda
+    end
+												
+fun getConst forms =
+    let fun removeSign const =
+	    let fun dropSign [] = []
+		  | dropSign (#"-"::rest) = dropSign rest
+		  | dropSign chars = chars
+	    in String.implode (dropSign (String.explode const))
+	    end 
+	fun getConstFromTerm (Ln.Var x) = []
+	  | getConstFromTerm (Ln.Fun ts) = getConstFromTermList ts
+	and getConstFromTermList [] = []
+	  | getConstFromTermList ((c,t)::ts) = (List.map (fn const => removeSign const) (List.concat c)) @ (getConstFromTerm t) @ (getConstFromTermList ts)
+    in List.filter (fn const => case String.explode const of
+      c :: _ => Char.isDigit c = false
+    | [] => true) (LU.unions (List.map (fn Ln.Eq (l,r) => getConstFromTerm l @ getConstFromTerm r | Ln.Geq (l,r) => getConstFromTerm l @ getConstFromTerm r) forms))
+    end
+
+fun cutCoef coef =
+    let fun cutZero coef = List.filter (fn consts => List.all (fn c => c <> "0") consts) coef
+	val coef' = cutZero coef 
+    in if null coef' then [["0"]] else coef'
+    end
+    
+fun toSMT form =
+    let fun normalizeSign const =
+	    let fun process (#"-" :: #"-" :: rest) = process rest
+		  | process (c :: rest) = c :: process rest
+		  | process [] = []
+		val constList = (process (String.explode const))
+	    in if hd constList = #"-" then "(- " ^ (String.implode (tl constList)) ^ ")" else String.implode constList
+	    end
+	fun getCuttedTerm (Ln.Var x) = Ln.Var x
+	  | getCuttedTerm (Ln.Fun ts) = Ln.Fun (List.map (fn (c,t) => (cutCoef c,t)) ts)
+	fun getCuttedForm (Ln.Eq (l,r)) = Ln.Eq (getCuttedTerm l,getCuttedTerm r)
+	  | getCuttedForm (Ln.Geq (l,r)) = Ln.Geq (getCuttedTerm l,getCuttedTerm r)
+	fun toStringMult [] = ""
+	  | toStringMult [const] = normalizeSign const
+	  | toStringMult constList =  "(* " ^ (String.concatWith " " (List.map normalizeSign constList)) ^ ")"
+	fun toStringAdd [] = ""
+	  | toStringAdd [coef] = toStringMult coef
+	  | toStringAdd coefList = "(+ " ^ (String.concatWith " " (List.map toStringMult coefList)) ^ ")"
+	fun toString (Ln.Eq (l,r)) = "(= " ^ ((fn [coef] => toStringAdd coef | _ => "") (Ln.getCoef l)) ^ " " ^ ((fn [coef] => toStringAdd coef | _ => "") (Ln.getCoef r)) ^ ")"
+	  | toString (Ln.Geq(l,r)) = "(>= " ^ ((fn [coef] => toStringAdd coef | _ => "") (Ln.getCoef l)) ^ " " ^ ((fn [coef] => toStringAdd coef | _ => "") (Ln.getCoef r)) ^ ")"	 
+    in toString (getCuttedForm form)
+    end 
+
+fun printSMT forms =
+    let val outStream = TextIO.openOut "in.smt2"
+	val _ =  TextIO.output (outStream,"(set-logic QF_NIA)\n")
+	fun declare consts = List.map (fn const => TextIO.output (outStream,"(declare-const " ^ const ^ " Int)\n")) consts
+	fun assert forms = List.map (fn form => TextIO.output (outStream,"(assert " ^ form ^ ")\n")) forms
+	val _ = declare (getConst forms)
+	val _ = TextIO.output (outStream,"(assert (>= $c 0))\n")
+	val _ = assert (List.map toSMT forms)
+	val _ = TextIO.output (outStream,"(check-sat)\n")
+	val _ = TextIO.output (outStream,"(get-model)\n")
+	val _ = TextIO.closeOut outStream
+    in ()
+    end
+
+fun runZ3 () =
+    let val command = "z3 -T:30 in.smt2 > out.txt"
+	val status = OS.Process.system command
+    in case status of
+	   0 => SOME "satisfiable"
+         | _ => NONE
+    end
+
+fun readModel () =
+    let val inStream = TextIO.openIn "out.txt"
+	val result = TextIO.inputLine inStream
+	fun loop () = case TextIO.inputLine inStream of
+			  NONE => []
+			| SOME line => line::(loop ())
+	val lines = case result of
+			SOME "sat\n" => loop ()
+		      | _ => raise Fail "unable to find model"
+	val _ = TextIO.closeIn inStream
+	val l = List.take (List.drop (lines,1),length lines - 2)
+	fun splitSpace str = String.tokens (fn c => c = #" ") str
+	fun extractIntTokenFromLine str =
+	    let val value = String.concatWith "" (splitSpace str)
+		fun clean s = String.translate (fn c => if Char.isDigit c orelse c = #"-" then String.str c else "") s
+	    in case Int.fromString (clean value) of
+		   SOME s => s
+		 | NONE => raise Fail ("No int found in line: " ^ str)
+	    end	
+	fun parseDefineFuns [] acc = acc
+	  | parseDefineFuns (l1::l2::rest) acc =
+	    let val toks = splitSpace l1
+	    in case toks of
+		   "(define-fun"::name::_ =>
+		   if String.isPrefix "$L" name
+		   then parseDefineFuns rest acc
+		   else 
+		       let val value = extractIntTokenFromLine l2
+		       in parseDefineFuns rest ((name, value)::acc)
+		       end
+		 | _ => parseDefineFuns (l2::rest) acc
+	    end
+	  | parseDefineFuns _ acc = acc
+	fun extractDefineFuns lines =
+	    List.rev (parseDefineFuns lines [])
+    in extractDefineFuns l
+    end
+
+fun extractIndex s =
+  let val parts = String.tokens (fn c => c = #"_") s
+  in case List.rev parts of
+         [] => 0
+       | last::_ => Option.getOpt (Int.fromString last, 0)
+  end
+
+fun sortByIndex lst =
+  ListMergeSort.sort (fn ((s1, _), (s2, _)) =>
+			 case Int.compare (extractIndex s1, extractIndex s2) of
+			     GREATER => true
+			   | _ => false
+  ) lst
+
+fun printModel (funs,preds) assignments =
+    let fun groupByKeys keys assigns = List.map (fn (key,arity) => ((key,arity), List.filter (fn (sym, _) => String.isPrefix key sym) assigns)) keys
+	fun printDom dom = if #2 (valOf (List.find (fn (c,_) => c = "$c") dom)) = 0 then print "Int\n" else print "Nat\n"
+	fun printFun [] = ()
+	  | printFun (((f,k),assignment)::rest) =
+	    let val args = List.tabulate (k,fn x => "x_" ^ Int.toString (x + 1))
+		val sortedAssignment = sortByIndex assignment
+		val largs = List.map (fn (x,(f,n)) => (Int.toString n) ^ "*" ^ x) (List.filter (fn (x,(f,n)) => n <> 0) (ListPair.zip (args,(tl sortedAssignment))))
+		val func = if k = 0 then f else f ^ "(" ^ (String.concatWith "," args) ^ ")"
+		val lfunc = if null largs then (fn (f,n) => Int.toString n) (hd sortedAssignment) else (String.concatWith "+" largs) ^ ((fn (f,n) => if n = 0 then "" else "+" ^ Int.toString n) (hd sortedAssignment))
+		val _ = print (func ^ " = " ^ lfunc ^ "\n")
+	    in printFun rest
+	    end
+	fun printPred [] = ()
+	  | printPred (((p,n),assignment)::rest) =
+	    let val (p0,p1) = List.partition (fn (sym,num) => String.isPrefix (p ^ "_1") sym) assignment
+		val sortedP0 = sortByIndex p0
+		val sortedP1 = sortByIndex p1
+		val args = List.tabulate (n,fn x => "x_" ^ Int.toString (x + 1))
+		val largs0 = List.map (fn (x,(p,n)) => (Int.toString n) ^ "*" ^ x) (List.filter (fn (x,(p,n)) => n <> 0) (ListPair.zip (args,(tl sortedP0))))
+		val largs1 = List.map (fn (x,(p,n)) => (Int.toString n) ^ "*" ^ x) (List.filter (fn (x,(p,n)) => n <> 0) (ListPair.zip (args,(tl sortedP1))))
+		val pred = if n = 0 then p else p ^ "(" ^ (String.concatWith "," args) ^ ")"
+		val lpred0 = if null largs0 then
+				 if #2 (hd sortedP0) = 0 then "" else "0 >= " ^ (Int.toString (#2 (hd sortedP0))) ^ " & "
+			     else (String.concatWith "+" largs0) ^ ((fn (f,n) => if n = 0 then "" else " >= " ^ Int.toString n) (hd sortedP0))
+		val lpred1 = if null largs1 then
+				 if #2 (hd sortedP1) = 0 then "" else "0 >= " ^ (Int.toString (#2 (hd sortedP1))) ^ " & "
+			     else (String.concatWith "+" largs1) ^ ((fn (f,n) => if n = 0 then "" else " >= " ^ Int.toString n) (hd sortedP1))
+		val _ = print (pred ^ " <=> " ^ lpred0 ^  lpred1 ^ "\n")
+	    in printPred rest
+	    end 
+	val funGroups = groupByKeys funs assignments
+	val predGroups = groupByKeys preds assignments
+	val dom = List.filter (fn (sym, _) => not (List.exists (fn (key,_) => String.isPrefix key sym) (funs @ preds))) assignments
+	val _ = print ("Domain:\n")
+	val _ = printDom dom
+	val _ = if null funGroups then () else print ("\n" ^ "function:\n")
+	val _ = printFun funGroups
+	val _ = if null predGroups then () else print ("\n" ^ "predicate:\n")
+	val _ = printPred predGroups
+    in ()
+    end
+
+fun ages filename =
+    let val input = F.input filename
+	val normalizedInput = F.toAffine (List.map F.nnf input)
+	val cond = if (List.exists (fn (f,k) => k = 0)) (F.getArsFun normalizedInput) then algebraicity normalizedInput else (algebraicity normalizedInput) @ (List.map (fn ci => ([],ci)) (makeDomConstraints ()))
+	val forms = List.concat (List.map toLnForm normalizedInput)
+	val funs = Form.getArsFun input
+	val preds = List.filter (fn (p,n) => p <> "=") (Form.getArsPred input)
+	val (constraintsVar,constraintsConst) = List.partition (fn (eqs,eq) => List.exists Ln.isContainVar (eq::eqs)) (cond @ forms)
+	fun iterateFarkas [] _ = []
+	  | iterateFarkas (form::rest) i = applyFarkas form i @ iterateFarkas rest (i + 1)
+	val constraintsConst' = List.map (fn (eqs,eq) => eq) constraintsConst
+	val constraintsVar' = iterateFarkas constraintsVar 1
+	val constraints = constraintsConst' @ constraintsVar'
+	val _ = printSMT constraints
+	val _ = runZ3 ()
+    in printModel (funs,preds) (readModel ())
+    end 
+end
+end 

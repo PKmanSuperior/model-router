@@ -1,0 +1,24 @@
+(* sources.cm *)
+Group is
+        $/basis.cm
+	$/smlnj-lib.cm
+
+	./list_util.sml
+	./string_util.sml
+	
+	./var.sml
+	./fun.sml
+	./pred.sml
+	./symbol.sml
+
+	./lexical.sml
+	./parsing.sml
+	./term.sml
+
+	./formula.sml
+	./infinite.sml
+
+	./mace.sml
+
+	./ln_form.sml
+	./ages.sml

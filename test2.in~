@@ -1,0 +1,7 @@
+formulas(assumptions).
+all x all y (f(p(x,y))=x).
+end_of_list.
+
+formulas(goals).
+exists c all x all y ((p(x,c)=p(y,c) -> x=y) & p(x,c)!=d).
+end_of_list.

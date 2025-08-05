@@ -1,0 +1,59 @@
+signature MACE =
+sig
+    val makeInFile: Form.form list -> int -> unit
+    val runM4: unit -> string
+    val mace: Form.form list -> int -> unit
+end
+
+structure Mace : MACE =
+struct
+open Form
+fun dropWhile p [] = []
+  | dropWhile p (x::xs) = if p x then dropWhile p xs else x::(dropWhile p xs)
+
+
+fun toStringM4 form =
+  let fun paren s = "(" ^ s ^ ")"
+      fun aux prop = case prop of
+			 Atom a => toStringAtom a
+		       | Not p1 => "-" ^ paren (aux p1)
+		       | And (p1, p2) => paren (aux p1 ^ "&" ^ aux p2)
+		       | Or (p1, p2) => paren (aux p1 ^ "|" ^ aux p2)
+		       | Imp (p1, p2) => paren (aux p1 ^ "->" ^ aux p2)
+		       | Iff (p1,p2) => paren (aux p1 ^ "<->" ^ aux p2)
+		       | All (x,p) => "all " ^ Var.toString x ^ paren (aux p)
+		       | Exists (x,p) => "exists " ^ Var.toString x ^ paren (aux p)
+      fun deletePrefix cs = dropWhile (fn c => c = #"?") cs
+  in String.implode (deletePrefix (String.explode (aux form)))
+  end
+
+fun makeInFile forms timeout =
+    let val outStream = TextIO.openOut "mace.in"
+	val _ = TextIO.output (outStream, "assign(max_seconds, " ^ Int.toString timeout ^ ").\n")
+	val _ = TextIO.output (outStream, "formulas(theory).\n")
+	fun loop [] = ()
+	  | loop (line::rest) =
+	    let val _ = TextIO.output (outStream, line ^ ".\n")
+	    in loop rest
+	    end 
+	val _ = loop (List.map Form.toString forms)
+	val _ = TextIO.output (outStream, "end_of_list.\n")
+	val _ = TextIO.closeOut outStream
+    in ()
+    end
+
+fun runM4 () =
+    let val command = "./mace4 -f mace.in > mace.out"
+	val _ = OS.Process.system command
+	val inStream = TextIO.openIn "inf.out"
+	val result = TextIO.inputAll inStream
+	val _ = TextIO.closeIn inStream 
+    in result
+    end
+
+fun mace forms timeout =
+    let val _ = makeInFile forms timeout
+	val _ = runM4()
+    in ()
+    end 
+end
