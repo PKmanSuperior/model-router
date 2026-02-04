@@ -1,81 +1,127 @@
 sat
 (
-  (define-fun $L_5_1 () Int
-    1)
-  (define-fun $L_7_1 () Int
-    7)
-  (define-fun $L_2_1 () Int
-    7)
-  (define-fun $L_1_3 () Int
-    1)
-  (define-fun $s_0 () Int
-    3)
-  (define-fun $P_2_1 () Int
+  (define-fun $L_7_5 () Int
     0)
-  (define-fun $P_2_0 () Int
+  (define-fun $L_8_4 () Int
+    11)
+  (define-fun $L_3_4 () Int
     0)
-  (define-fun $L_9_1 () Int
+  (define-fun $L_1_1 () Int
     0)
-  (define-fun $s_1 () Int
-    7)
-  (define-fun $L_2_2 () Int
-    4)
-  (define-fun $Q_1_0 () Int
+  (define-fun $L_9_2 () Int
+    15)
+  (define-fun $P_1_0 () Int
     0)
-  (define-fun $P_2_2 () Int
-    0)
-  (define-fun $P_1_1 () Int
-    1)
   (define-fun $L_6_1 () Int
     0)
-  (define-fun $-_0 () Int
-    0)
-  (define-fun $L_8_2 () Int
-    7)
-  (define-fun $L_5_2 () Int
-    8)
-  (define-fun $L_1_2 () Int
-    2)
+  (define-fun $-_2 () Int
+    3)
   (define-fun $-_1 () Int
+    7)
+  (define-fun $L_2_6 () Int
+    0)
+  (define-fun $L_1_5 () Int
+    7)
+  (define-fun $L_9_1 () Int
+    0)
+  (define-fun $P_1_2 () Int
+    0)
+  (define-fun $L_3_2 () Int
+    0)
+  (define-fun $s_0 () Int
+    13)
+  (define-fun $L_7_1 () Int
+    0)
+  (define-fun $L_2_5 () Int
+    0)
+  (define-fun $P_2_2 () Int
+    (- 1))
+  (define-fun $L_5_4 () Int
+    11)
+  (define-fun $L_1_7 () Int
     4)
   (define-fun $Q_2_1 () Int
-    7)
+    0)
+  (define-fun $L_2_4 () Int
+    13)
   (define-fun $Q_1_2 () Int
-    1)
+    (- 7))
+  (define-fun $L_4_3 () Int
+    10)
   (define-fun $L_4_1 () Int
     0)
-  (define-fun $L_6_2 () Int
+  (define-fun $P_1_1 () Int
     0)
-  (define-fun $0_0 () Int
-    2)
-  (define-fun $L_8_1 () Int
-    0)
-  (define-fun $P_1_0 () Int
+  (define-fun $L_1_6 () Int
     1)
-  (define-fun $Q_2_0 () Int
+  (define-fun $L_1_2 () Int
+    0)
+  (define-fun $L_2_3 () Int
     0)
   (define-fun $L_1_4 () Int
+    6)
+  (define-fun $Q_1_1 () Int
+    7)
+  (define-fun $L_6_3 () Int
+    0)
+  (define-fun $L_5_5 () Int
+    0)
+  (define-fun $Q_2_2 () Int
+    0)
+  (define-fun $L_5_1 () Int
+    0)
+  (define-fun $-_0 () Int
+    5)
+  (define-fun $L_8_3 () Int
     0)
   (define-fun $L_7_2 () Int
     0)
-  (define-fun $-_2 () Int
-    1)
-  (define-fun $L_1_1 () Int
-    0)
-  (define-fun $L_3_2 () Int
-    2)
-  (define-fun $P_1_2 () Int
-    (- 3))
-  (define-fun $Q_1_1 () Int
+  (define-fun $L_5_3 () Int
     0)
   (define-fun $L_3_1 () Int
-    4)
-  (define-fun $L_2_4 () Int
-    3)
-  (define-fun $Q_2_2 () Int
-    (- 5))
-  (define-fun $L_2_3 () Int
+    0)
+  (define-fun $L_1_3 () Int
+    0)
+  (define-fun $L_3_3 () Int
+    2)
+  (define-fun $L_8_1 () Int
+    0)
+  (define-fun $L_2_2 () Int
+    0)
+  (define-fun $L_8_2 () Int
+    0)
+  (define-fun $L_4_4 () Int
     10)
+  (define-fun $L_2_1 () Int
+    0)
+  (define-fun $0_0 () Int
+    4)
+  (define-fun $L_5_2 () Int
+    0)
+  (define-fun $L_8_5 () Int
+    3)
+  (define-fun $L_2_7 () Int
+    5)
+  (define-fun $P_2_0 () Int
+    7)
+  (define-fun $L_7_3 () Int
+    0)
   (define-fun $L_4_2 () Int
-    6)
+    0)
+  (define-fun $s_1 () Int
+    10)
+  (define-fun $P_2_1 () Int
+    1)
+  (define-fun $L_6_2 () Int
+    0)
+  (define-fun $L_6_5 () Int
+    7)
+  (define-fun $Q_2_0 () Int
+    0)
+  (define-fun $L_6_4 () Int
+    0)
+  (define-fun $Q_1_0 () Int
+    (- 8))
+  (define-fun $L_7_4 () Int
+    4)
 )

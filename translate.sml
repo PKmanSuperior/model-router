@@ -71,12 +71,15 @@ fun getTheory ctrs =
 	val trans = F.Imp (F.And (F.Atom (F.Pred ("P", [T.Var ("x", 0), T.Var ("y", 0)])), F.Atom (F.Pred ("Q", [T.Var ("y", 0), T.Var ("z", 0)]))), F.Atom (F.Pred ("Q", [T.Var ("x", 0), T.Var ("z", 0)])))
 	val congs = getCongs ctrs
 	val repls = getRepls ctrs
-    in refl::trans::congs @ repls
+    in List.map F.addQuantsAll (refl::trans::congs @ repls)
     end 
 
-fun getInfeasibility [] = raise Fail "Error: problem is empty"
-  | getInfeasibility [(s,t)] = F.Not (F.Atom (F.Pred ("Q", [s,t])))
-  | getInfeasibility ((s,t)::rest) = F.Or (F.Not (F.Atom (F.Pred ("Q", [s,t]))), getInfeasibility rest)
+fun getInfeasibility reachs =
+    let fun main [] = raise Fail "Error: problem is empty"
+	  | main [(s,t)] = F.Not (F.Atom (F.Pred ("Q", [s,t])))
+	  | main ((s,t)::rest) = F.Or (F.Not (F.Atom (F.Pred ("Q", [s,t]))), main rest)
+    in (F.addQuantsAll o rename o main) reachs
+    end 
 
 end
 end

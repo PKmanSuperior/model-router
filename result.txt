@@ -1,103 +1,103 @@
-664.ari:false
-665.ari:false
-675.ari:false
-676.ari:false
-677.ari:false
-678.ari:false
-679.ari:false
-680.ari:false
-682.ari:false
-683.ari:false
-684.ari:false
-685.ari:false
-686.ari:false
-687.ari:false
-688.ari:false
-689.ari:false
-690.ari:false
-691.ari:false
-693.ari:false
-694.ari:false
-695.ari:false
-696.ari:false
-704.ari:false
-705.ari:false
-706.ari:false
-707.ari:true
-708.ari:false
-709.ari:false
-711.ari:false
-712.ari:false
-713.ari:false
-715.ari:true
-716.ari:false
-720.ari:false
-721.ari:true
-724.ari:false
-729.ari:false
-738.ari:false
-739.ari:true
-740.ari:true
-741.ari:false
-742.ari:false
-743.ari:false
-744.ari:false
-746.ari:false
-748.ari:false
-749.ari:false
-750.ari:false
-751.ari:false
-753.ari:false
-754.ari:false
-755.ari:false
-756.ari:false
-757.ari:false
-758.ari:false
-759.ari:false
-760.ari:false
-761.ari:false
-762.ari:false
-763.ari:false
-765.ari:false
-766.ari:false
-767.ari:true
-768.ari:false
-769.ari:true
-770.ari:true
-771.ari:true
-772.ari:true
-774.ari:true
-775.ari:true
-776.ari:true
-777.ari:true
-778.ari:false
-779.ari:true
-780.ari:true
-781.ari:true
-782.ari:true
-783.ari:true
-784.ari:true
-785.ari:false
-786.ari:false
-787.ari:true
-788.ari:true
-789.ari:false
-790.ari:false
-791.ari:true
-979.ari:false
-980.ari:false
-982.ari:true
-984.ari:true
-990.ari:true
-991.ari:true
-995.ari:false
-996.ari:true
-997.ari:false
-998.ari:false
-999.ari:false
-1000.ari:false
-1127.ari:false
-1129.ari:false
-1130.ari:false
-1612.ari:false
-1613.ari:false
+664.ari: true
+665.ari: false
+675.ari: false
+676.ari: false
+677.ari: false
+678.ari: false
+679.ari: false
+680.ari: false
+682.ari: false
+683.ari: false
+684.ari: false
+685.ari: false
+686.ari: false
+687.ari: false
+688.ari: false
+689.ari: false
+690.ari: false
+691.ari: false
+693.ari: false
+694.ari: false
+695.ari: false
+696.ari: false
+704.ari: false
+705.ari: false
+706.ari: false
+707.ari: false
+708.ari: true
+709.ari: false
+711.ari: false
+712.ari: false
+713.ari: false
+715.ari: false
+716.ari: false
+720.ari: false
+721.ari: false
+724.ari: false
+729.ari: false
+738.ari: false
+739.ari: false
+740.ari: false
+741.ari: false
+742.ari: true
+743.ari: false
+744.ari: false
+746.ari: true
+748.ari: false
+749.ari: false
+750.ari: false
+751.ari: false
+753.ari: true
+754.ari: false
+755.ari: false
+756.ari: false
+757.ari: false
+758.ari: false
+759.ari: false
+760.ari: false
+761.ari: false
+762.ari: false
+763.ari: false
+765.ari: false
+766.ari: false
+767.ari: false
+768.ari: false
+769.ari: false
+770.ari: false
+771.ari: false
+772.ari: false
+774.ari: false
+775.ari: false
+776.ari: false
+777.ari: false
+778.ari: false
+779.ari: false
+780.ari: false
+781.ari: false
+782.ari: false
+783.ari: false
+784.ari: false
+785.ari: false
+786.ari: true
+787.ari: false
+788.ari: false
+789.ari: false
+790.ari: false
+791.ari: false
+979.ari: false
+980.ari: false
+982.ari: true
+984.ari: false
+990.ari: false
+991.ari: false
+995.ari: false
+996.ari: false
+997.ari: false
+998.ari: false
+999.ari: false
+1000.ari: false
+1127.ari: false
+1129.ari: false
+1130.ari: false
+1612.ari: false
+1613.ari: false

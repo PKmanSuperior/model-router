@@ -1,9 +1,10 @@
-signature IN2 =
+signature IN =
 sig
     val read: string -> (Trs.ctrs * Trs.reach list)
+    val encode: string -> unit
 end
 
-structure In2 : IN2 =
+structure In : IN =
 struct
 local
     structure SU = StringUtil
@@ -72,6 +73,13 @@ fun read filename =
 	val problems = getReachs symbols problem
     in (ctrs, problems)
     end 
-					  
+
+fun encode filename =
+    let val (ctrs, reachs) = read filename
+	val _ = print (Trs.prCRules ctrs)
+	val _ = print (Trs.prReachs reachs ^ "\n")
+    in ()
+    end 
+	
 end
 end 

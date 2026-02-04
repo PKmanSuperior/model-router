@@ -85,7 +85,7 @@ fun split str ch =
 						end 
 				  | NONE => loop ("",str::ss) ch
     in loop (str,[]) ch
-    end 
+    end
 
 end
 

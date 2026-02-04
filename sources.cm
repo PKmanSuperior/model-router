@@ -23,10 +23,10 @@ Group is
 
 	./decompose.sml
 	./order.sml
+
+	./criterion.sml
 	
 	./translate.sml
-	
-	./infinite.sml
 
 	./mace.sml
 

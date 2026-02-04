@@ -1,9 +1,6 @@
 signature AGES =
 sig
     val makeGeq: Ln.coef list -> Var.key list -> Ln.coef -> Ln.atom
-    val makeDomConstraints: unit -> Ln.atom list
-    val getPolynomial: Term.fun_key * int -> Ln.atom list * Ln.term
-    val algebraicity: Form.form list -> (Ln.atom list * Ln.atom) list
     val toLnForm: Form.form list -> (Ln.atom list * Ln.atom) list
     val toStringConstraints: (Ln.atom list * Ln.atom) -> string
     val applyFarkas: (Ln.atom list * Ln.atom) -> int -> Ln.atom list
@@ -42,54 +39,10 @@ fun makeEq lefts vars right =
 	fun getTerm (coef, var) = (coef, Ln.Var var)
     in Ln.Eq (Ln.Fun (List.map getTerm terms), Ln.Fun [(right, Ln.Var ("0",0))])
     end 
-
-fun makeDomConstraints () = [makeGeq [[["$$c_1","k"]]] [("0",0)] [["$$b_1"]], makeGeq [[["$$c_2", "k"]]] [("0", 0)] [["$$b_2"]]]
-
-(***********************************************************)
-fun makeDomConstraints2 () = [makeGeq [[["k"]]] [("0",0)] [["0"]], makeGeq [[["$$c", "k"]]] [("0", 0)] [["$$b"]]]
-(***********************************************************)
 			
-fun makeSubDom vars = List.concatMap (fn x => [makeGeq [[["$$c_1"]]] [x] [["$$b_1"]], makeGeq [[["$$c_2"]]] [x] [["$$b_2"]]]) vars
+fun makeSubDom vars = List.concatMap (fn x => [makeGeq [[["1"]]] [x] [["0"]]]) vars
 
-(***********************************************************)
-fun makeSubDom2 vars = List.concatMap (fn x => [makeGeq [[["1"]]] [x] [["0"]], makeGeq [[["$$c"]]] [x] [["$$b"]]]) vars
-
-fun makeSubDom3 vars = List.concatMap (fn x => [makeGeq [[["1"]]] [x] [["0"]]]) vars
-(***********************************************************)
-
-fun getPolynomial (f,k) =
-    let val vars = List.map (fn i => ("x",i)) (List.tabulate (k,fn x => x + 1))
-	val cond = makeSubDom2 vars
-	val term = T.Fun (f,List.map (fn x => T.Var x) vars)
-    in (cond,Ln.makeTerm term)
-    end
-
-fun algebraicity forms =
-    let val arities = F.getArsFun forms
-	fun main [] = []
-	  | main (arity::rest) =
-	    let val (cond,Ln.Fun polynomial) = getPolynomial arity
-		val geq1 = Ln.Geq (Ln.Fun (List.map (fn (coef,t) => (Ln.expandCoef ([["$$c_1"]],coef),t)) polynomial),Ln.Fun [([["$$b_1"]],Ln.Var ("0",0))])
-		val geq2 = Ln.Geq (Ln.Fun (List.map (fn (coef,t) => (Ln.expandCoef ([["$$c_2"]],coef),t)) polynomial),Ln.Fun [([["$$b_2"]],Ln.Var ("0",0))])
-	    in if null cond then [(cond, geq1), (cond, geq2)] @ (main rest) else [(cond, Ln.moveTerm geq1), (cond, Ln.moveTerm geq2)] @ (main rest)
-	    end 
-    in main arities
-    end
-
-(***********************************************************)	
 fun closure forms =
-    let val arities = F.getArsFun forms
-	fun main [] = []
-	  | main (arity::rest) =
-	    let val constsGeq = List.map (fn fi => ([], makeGeq [[[fi]]] [("0", 0)] [["0"]])) (Ln.makeConstFun arity)
-		val (cond,Ln.Fun polynomial) = getPolynomial arity
-		val geq = Ln.Geq (Ln.Fun (List.map (fn (coef,t) => (Ln.expandCoef ([["$$c"]],coef),t)) polynomial),Ln.Fun [([["$$b"]],Ln.Var ("0",0))])
-	    in if null cond then ((cond, geq) :: constsGeq) @ (main rest) else ((cond, Ln.moveTerm geq) :: constsGeq ) @ (main rest)
-	    end 
-    in main arities
-    end
-
-fun closure2 forms =
     let val arities = F.getArsFun forms
 	fun main [] = []
 	  | main (arity::rest) =
@@ -98,8 +51,6 @@ fun closure2 forms =
 	    end 
     in main arities
     end
-	
-(***********************************************************)
 	
 fun toLnForm forms =
     let val cnf = List.concatMap (F.cnfList o F.cnf o F.toQF o F.skolem o F.nnf) forms
@@ -126,7 +77,7 @@ fun toLnForm forms =
 		    in List.concatMap (fn ci => List.map (fn a => moveTerms (a, ci)) ant') (Ln.makeForm (abs conseq))
 		    end
 		val vars = LU.elimDup (List.concatMap F.varsAtom (List.map abs cl))
-		val conds = makeSubDom3 vars
+		val conds = makeSubDom vars
 		val (pos, neg) = List.partition (fn (F.Pos _) => true | (F.Neg _) => false) cl
 	    in if null neg then conv1 pos conds
 	       else if null pos then conv2 neg conds
@@ -134,8 +85,6 @@ fun toLnForm forms =
 	    end 
     in List.concatMap toConstraints cnf
     end
-
-(***********************************************************)
 
 fun NatCriteria forms =
     let fun main form =
@@ -155,59 +104,6 @@ fun NatCriteria forms =
 	    end
     in List.concatMap main forms
     end
-
-fun toLnFormInt forms =
-    let val cnf = List.concatMap (F.cnfList o F.cnf o F.toQF o F.skolem o F.nnf) forms
-	fun toConstraints cl =
-	    let fun abs (F.Pos p) = p
-		  | abs (F.Neg p) = p
-		fun moveTerms (eqs, eq) = (List.map Ln.moveTerm eqs, Ln.moveTerm eq)
-		fun conv1 pos =
-		    let val (conseq, ant) = valOf (List.getItem pos)
-			val exAnt = LU.allCombinations (List.map (fn a => Ln.makeFormNegAnt (abs a)) ant)
-		    in List.concatMap (fn ci => List.map (fn a => moveTerms (a, ci)) exAnt) (Ln.makeForm (abs conseq))
-		    end
-		fun conv2 neg =
-		    let val (conseq, ant) = valOf (List.getItem neg)
-			val ant' = List.concatMap (fn a => Ln.makeForm (abs a)) ant
-			val (c1, c2) = Ln.makeFormNegConseq (abs conseq)
-		    in [moveTerms (c1::ant', c2)]
-		    end
-		fun conv3 (pos, neg) =
-		    let val (conseq, ant) = valOf (List.getItem pos)
-			val antNeg = List.concatMap (fn a => Ln.makeForm (abs a)) neg
-			val exAnt = LU.allCombinations (List.map (fn a => Ln.makeFormNegAnt (abs a)) ant)
-			val ant' = List.map (fn a => antNeg @ a) exAnt
-		    in List.concatMap (fn ci => List.map (fn a => moveTerms (a, ci)) ant') (Ln.makeForm (abs conseq))
-		    end
-		val (pos, neg) = List.partition (fn (F.Pos _) => true | (F.Neg _) => false) cl
-	    in if null neg then conv1 pos
-	       else if null pos then conv2 neg
-	       else conv3 (pos, neg)
-	    end 
-    in List.concatMap toConstraints cnf
-    end
-
-fun IntCriteria forms =
-    let fun main form =
-	    let val atom = hd (F.getAtom form)
-		val eqs = List.map (fn p => Ln.moveTerm p) (Ln.makeForm atom)
-		fun getCoefGeq (Ln.Eq (s, t)) =
-		    let val aList = Ln.getCoef s
-			val a0 = hd (Ln.getCoef t)
-		    in ([], makeGeq [[["0"]]] [("0", 0)] a0) :: (List.map (fn ai => ([], makeEq [ai] [("0", 0)] [["0"]])) aList)
-		    end 
-		  | getCoefGeq (Ln.Geq (s, t)) =
-		    let val aList = Ln.getCoef s
-			val a0 = hd (Ln.getCoef t)
-		    in ([], makeGeq [[["0"]]] [("0", 0)] a0) :: (List.map (fn ai => ([], makeEq [ai] [("0", 0)] [["0"]])) aList)
-		    end
-	    in List.concatMap getCoefGeq eqs
-	    end
-    in List.concatMap main forms
-    end 
-	
-(***********************************************************)
 	
 fun toStringConstraints (eqs,eq) = if null eqs then Ln.toStringForm eq else (String.concatWith "&" (List.map Ln.toStringForm eqs)) ^ "=>" ^ (Ln.toStringForm eq)
 
@@ -300,25 +196,6 @@ fun printSMT forms =
 	val _ =  TextIO.output (outStream,"(set-logic QF_NIA)\n")
 	fun declare consts = List.map (fn const => TextIO.output (outStream,"(declare-const " ^ const ^ " Int)\n")) consts
 	fun assert forms = List.map (fn form => TextIO.output (outStream,"(assert " ^ form ^ ")\n")) forms
-	fun Int () =
-	    let val _ = TextIO.output (outStream,"(assert (= $$c_1 0))\n")
-		val _ = TextIO.output (outStream,"(assert (= $$c_2 0))\n")
-		val _ = TextIO.output (outStream,"(assert (= $$b_1 0))\n")
-		val _ = TextIO.output (outStream,"(assert (= $$b_2 0))\n")
-	    in ()
-	    end
-	fun Nat () =
-	    let val _ = TextIO.output (outStream,"(assert (>= $$c_1 0))\n")
-		val _ = TextIO.output (outStream,"(assert (= $$c_2 0))\n")
-		val _ = TextIO.output (outStream,"(assert (= $$b_1 0))\n")
-		val _ = TextIO.output (outStream,"(assert (= $$b_2 0))\n")
-	    in ()
-	    end
-	fun Nat2 () =
-	    let val _ = TextIO.output (outStream,"(assert (or (= $$c 0) (= $$c -1)))\n")
-		val _ = TextIO.output (outStream,"(assert (<= $$b -1))\n")
-	    in ()
-	    end 
 	val _ = declare (getConst forms)
 	val _ = assert (List.map toStringSMT forms)
 	val _ = TextIO.output (outStream,"(check-sat)\n")
@@ -458,12 +335,12 @@ fun printModel (funs,preds) assignments =
 			else print (pred ^ " <=> " ^ lpred1 ^ lpred2 ^ "\n")
 	    in printPred rest
 	    end
+	val _ = print "==> SUCCESS\n"
 	val assignments' = List.map (fn (key, num) => (deleteDummy key, num)) assignments
 	val funGroups = groupByKeys funs assignments'
 	val predGroups = groupByKeys preds assignments'
 	val dom = List.filter (fn (sym, _) => not (List.exists (fn (key,_) => String.isPrefix key sym) (funs @ preds))) assignments'
-	val _ = print ("domain:\nNat\n")
-	(*val _ = printDom dom*)
+	val _ = print "domain:\nNat\n"
 	val _ = if null funGroups then () else print ("\n" ^ "function:\n")
 	val _ = printFun funGroups
 	val _ = if null predGroups then () else print ("\n" ^ "predicate:\n")
@@ -472,16 +349,16 @@ fun printModel (funs,preds) assignments =
     end
 
 fun getLnForms forms =
-    let (*val cond = if (List.exists (fn (f,k) => k = 0)) (F.getArsFun forms) then closure input else (closure forms) @ (List.map (fn ci => ([],ci)) (makeDomConstraints2 ())) *)
-	val cond = closure2 forms
+    let val cond = closure forms
 	val (atom, imp) = List.partition (fn F.Atom _ => true | _ => false) (List.map F.toQF forms)
 	val formsAtom = NatCriteria atom
 	val formsImp = toLnForm imp
-    in formsAtom @ formsImp (* @ cond *)
+    in formsAtom @ formsImp @ cond
     end 
 	
 fun ages input timeout =
-    let val forms = getLnForms input
+    let val _ = print ("model finding using AGES:\n" ^ Form.prForms input)
+	val forms = getLnForms input
 	val funs = Form.getArsFun input
 	val preds = List.filter (fn (p,n) => p <> "=") (Form.getArsPred input)
 	val (constraintsVar,constraintsConst) = List.partition (fn (eqs,eq) => List.exists Ln.containVar (eq::eqs)) forms
@@ -495,6 +372,8 @@ fun ages input timeout =
 	val _ = printModel (funs,preds) (readModel ())
     in true
     end
-    handle NotFound => false
+    handle NotFound => let val _ = print "==> FAILURE\n"
+		       in false
+		       end 
 end
 end 

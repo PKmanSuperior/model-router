@@ -18,6 +18,7 @@ sig
     val varsNum: term -> (var_key * int) list
     val funs: term -> fun_key list
     val funsNum: term -> int
+    val isConst: term -> bool
     val isGround: term -> bool
     val arity: term -> (fun_key * int) option
 
@@ -95,6 +96,9 @@ fun funsNum (Var x) = 0
   | funsNum (Fun (f,ts)) = 1 + funsNumList ts
 and funsNumList [] = 0
   | funsNumList (t::ts) = funsNum t + funsNumList ts
+
+fun isConst (Var x) = false
+  | isConst (Fun (f,ts)) = null ts
 
 fun isGround t = null (vars t)
 

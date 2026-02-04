@@ -7,6 +7,7 @@ sig
     (* functions for set *)
     val elm: 'a list -> 'a option
     val pair: 'a list -> ('a * 'a) option
+    val find: (''a -> bool) -> ''a list -> ''a option
     val member: ''a  -> ''a list -> bool
     val add: ''a  -> ''a list -> ''a list
     val union: ''a list * ''a list -> ''a list
@@ -16,13 +17,15 @@ sig
 						       
     val toStringBuilt: ('a -> string) -> (string * string * string) -> 'a list -> string
     val toStringCommaSpaceBrace: ('a -> string) -> 'a list  -> string
-    val toStringCommaLnSquare: ('a -> string) -> 'a list -> string
+    val toStringCommaLnSquare: string -> ('a -> string) -> 'a list -> string
+    val toStringCommaLnSquareSpace: ('a -> string) -> 'a list -> string
     val maxLength: 'a list list -> int
     val selectLengthN: int -> 'a list list -> 'a list list
     val sortOrderLargeLength: 'a list list -> 'a list list
     val mapAppend: ('a -> 'b list) -> 'a list -> 'b list
     val delete: ''a -> ''a list -> ''a list
     val elimDup: ''a list -> ''a list
+    val allSame: ''a list -> bool
 				 
     val combinations: int -> 'a list -> 'a list list
     val allCombinations: 'a list list -> 'a list list
@@ -37,6 +40,11 @@ fun elm [a] = SOME a
 
 fun pair [x, y] = SOME (x, y)
   | pair _ = NONE
+
+fun find f xs =
+    let val cands = (List.filter (fn x => f x) xs)
+    in if null cands then NONE else SOME (hd cands)
+    end 
 
 fun member x ys = List.exists (fn y => x = y) ys
 
@@ -63,7 +71,11 @@ fun toStringBuilt prElm (start,sep,stop) xs =
 
 fun toStringCommaSpaceBrace prElm xs = toStringBuilt prElm ("{",", ","}") xs
 
-fun toStringCommaLnSquare prElm xs = "   " ^ (toStringBuilt prElm ("[ ",",\n     "," ]\n") xs)
+fun iterate (str, n) = if n = 0 then "" else str ^ iterate (str, n - 1)
+fun toStringCommaLnSquare str prElm xs = str ^ (toStringBuilt prElm ("[ ",",\n" ^ iterate (" ", size str) ^ "  "," ]\n") xs)
+						     
+fun toStringCommaLnSquareSpace prElm xs = "    " ^ (toStringBuilt prElm ("[ ",",\n      "," ]\n") xs)
+
 
 (*リストのリストを受け取り、長さの最大値を返す関数*)
 fun maxLength xs =
@@ -96,6 +108,9 @@ fun delete e xs =
 
 fun elimDup [] = []
   | elimDup (x::xs) = x::(elimDup(delete x xs))
+
+fun allSame [] = true
+  | allSame (x::xs) = foldl (fn (y,acc) => acc andalso y = x) true xs
 
 fun combinations k xs = if k = 0 then [[]]
 			 else let val smaller = combinations (k-1) xs

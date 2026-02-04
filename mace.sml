@@ -95,9 +95,18 @@ fun printModel result =
     end
 
 fun mace forms timeout =
-    let val _ = makeInFile forms timeout
+    let val _ = print ("model finding using Mace4:\n" ^ Form.prForms forms)
+	val _ = makeInFile forms timeout
 	val result = runM4 ()
-    in if String.isSubstring "Exiting with failure" result then false else printModel result    
+    in if String.isSubstring "Exiting with failure" result
+       then
+	   let val _ = print "==> FAILURE\n"
+	   in false
+	   end 
+       else
+	   let val _ = print "==> SUCCESS\n"
+	   in printModel result
+	   end 
     end 
 end
 end

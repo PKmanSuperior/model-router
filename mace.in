@@ -1,23 +1,44 @@
-assign(max_seconds, 2).
+assign(max_seconds, 20).
 formulas(theory).
 all x (Q(x,x)).
 all y (all x (all z (((P(x,y) & Q(y,z)) -> Q(x,z))))).
-all x (all y (all x_2 ((P(x,y) -> P(add(x,x_2),add(y,x_2)))))).
-all x (all x_1 (all y ((P(x,y) -> P(add(x_1,x),add(x_1,y)))))).
-all x (all y (all x_2 ((P(x,y) -> P(gcd(x,x_2),gcd(y,x_2)))))).
-all x (all x_1 (all y ((P(x,y) -> P(gcd(x_1,x),gcd(x_1,y)))))).
-all x (all y ((P(x,y) -> P(iadd(x),iadd(y))))).
 all x (all y ((P(x,y) -> P(s(x),s(y))))).
-all x (all y (all x_2 ((P(x,y) -> P(tp2(x,x_2),tp2(y,x_2)))))).
-all x (all x_1 (all y ((P(x,y) -> P(tp2(x_1,x),tp2(x_1,y)))))).
-all x (all y ((P(x,y) -> P(u1(x),u1(y))))).
-all x_1 (all x_2 (all x_3 ((Q(iadd(x_1),tp2(x_2,x_3)) -> P(gcd(x_1,x_3),gcd(x_2,x_3)))))).
-all x_1 (all x_2 (all x_3 ((Q(iadd(x_1),tp2(x_2,x_3)) -> P(gcd(x_3,x_1),gcd(x_2,x_3)))))).
-all x_1 (P(gcd(x_1,$0),x_1)).
-all x_1 (P(gcd($0,x_1),x_1)).
-all x_1 (P(iadd(x_1),tp2($0,x_1))).
-all x_1 (P(iadd(s(x_1)),u1(iadd(x_1)))).
-all x_1 (all x_2 (P(u1(tp2(x_1,x_2)),tp2(s(x_1),x_2)))).
-all x_1 (all x_2 (P(iadd(add(x_1,x_2)),tp2(x_1,x_2)))).
-all x_1 (all x_2 (all x_3 (all x_4 (-((Q(iadd(x_4),tp2(x_1,x_2)) & Q(iadd(x_2),tp2(x_3,x_4)))))))).
+all x (all y (all x_2 ((P(x,y) -> P(cons(x,x_2),cons(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(cons(x_1,x),cons(x_1,y)))))).
+all x (all y (all x_2 ((P(x,y) -> P(f(x,x_2),f(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(f(x_1,x),f(x_1,y)))))).
+all x (all y (all x_2 ((P(x,y) -> P(process(x,x_2),process(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(process(x_1,x),process(x_1,y)))))).
+all x (all y (all x_2 ((P(x,y) -> P(sndsplit(x,x_2),sndsplit(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(sndsplit(x_1,x),sndsplit(x_1,y)))))).
+all x (all y (all x_2 ((P(x,y) -> P(leq(x,x_2),leq(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(leq(x_1,x),leq(x_1,y)))))).
+all x (all y ((P(x,y) -> P(length(x),length(y))))).
+all x (all y ((P(x,y) -> P(empty(x),empty(y))))).
+all x (all y (all x_2 ((P(x,y) -> P(fstsplit(x,x_2),fstsplit(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(fstsplit(x_1,x),fstsplit(x_1,y)))))).
+all x (all y (all x_2 ((P(x,y) -> P(app(x,x_2),app(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(app(x_1,x),app(x_1,y)))))).
+all x (all y (all x_2 ((P(x,y) -> P(map_f(x,x_2),map_f(y,x_2)))))).
+all x (all x_1 (all y ((P(x,y) -> P(map_f(x_1,x),map_f(x_1,y)))))).
+all x_1 (P(fstsplit($0,x_1),$nil)).
+all x_1 (P(fstsplit(s(x_1),$nil),$nil)).
+all x_1 (all x_2 (all x_3 (P(fstsplit(s(x_2),cons(x_1,x_3)),cons(x_1,fstsplit(x_2,x_3)))))).
+all x_1 (P(sndsplit($0,x_1),x_1)).
+all x_1 (P(sndsplit(s(x_1),$nil),$nil)).
+all x_1 (all x_2 (all x_3 (P(sndsplit(s(x_2),cons(x_1,x_3)),sndsplit(x_2,x_3))))).
+P(empty($nil),$true).
+all x_1 (all x_2 (P(empty(cons(x_1,x_2)),$false))).
+all x_1 (P(leq($0,x_1),$true)).
+all x_1 (P(leq(s(x_1),$0),$false)).
+all x_1 (all x_2 (P(leq(s(x_1),s(x_2)),leq(x_1,x_2)))).
+P(length($nil),$0).
+all x_1 (all x_2 (P(length(cons(x_1,x_2)),s(length(x_2))))).
+all x_1 (P(app($nil,x_1),x_1)).
+all x_1 (all x_2 (all x_3 (P(app(cons(x_1,x_2),x_3),cons(x_1,app(x_2,x_3)))))).
+all x_1 (P(map_f(x_1,$nil),$nil)).
+all x_1 (all x_2 (all x_3 (P(map_f(x_2,cons(x_1,x_3)),app(f(x_2,x_1),map_f(x_2,x_3)))))).
+all x_1 (all x_2 (((Q(leq(x_2,length(x_1)),$true) & Q(empty(fstsplit(x_2,x_1)),$false)) -> P(process(x_1,x_2),process(app(map_f($self,$nil),sndsplit(x_2,x_1)),x_2))))).
+all x_1 (all x_2 (((Q(leq(x_2,length(x_1)),$false) & Q(empty(fstsplit(x_2,app(map_f($self,$nil),x_1))),$false)) -> P(process(x_1,x_2),process(sndsplit(x_2,app(map_f($self,$nil),x_1)),x_2))))).
+all x_1 (all x_2 ((-(Q(empty(fstsplit(x_1,app(map_f($self,$nil),x_2))),$false)) | (-(Q(leq(x_1,length(x_2)),$false)) | (-(Q(empty(fstsplit(x_1,x_2)),$false)) | -(Q(leq(x_1,length(x_2)),$true))))))).
 end_of_list.

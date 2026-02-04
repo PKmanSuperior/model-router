@@ -35,6 +35,7 @@ sig
     val toStringAtom: atom -> string
     val fromStringAtom: string -> atom
     val toString: form -> string
+    val prForms: form list -> string
     val fromString: string -> form
     val input: string -> form list
 
@@ -305,7 +306,9 @@ fun toString form =
 	  | aux (All (x, p)) = "all " ^ Var.toString x ^ " " ^ paren (aux p)
 	  | aux (Exists (x, p)) = "exists " ^ Var.toString x ^ " " ^ paren (aux p)
     in (aux o toVars o toNeq) form
-    end 
+    end
+
+fun prForms forms = LU.toStringCommaLnSquareSpace toString forms
 									   
 fun tokenize str =	
     let fun lex [] = []

@@ -1,7 +1,8 @@
 signature DECOMP =
 sig
     val split: Trs.reach list -> Trs.reach list list
-    val delete: (Trs.ctrs * Trs.reach list) -> (Trs.ctrs * Trs.reach list)
+    val delete: (Trs.ctrs * Trs.reach list) -> Trs.ctrs
+    val decompose: Trs.ctrs * Trs.reach list -> (Trs.ctrs * Trs.reach list) list
 end
 
 structure Decomp : DECOMP =
@@ -29,7 +30,12 @@ fun normalize groups =
        else normalize groups'
     end
 	
-fun split reachs = normalize (List.map (fn x => [x]) (vars reachs))
+fun split reachs =
+    let val _ = print ("    " ^ Trs.prReachs reachs ^ "\n==> ")
+	val reachsList = normalize (List.map (fn x => [x]) (vars reachs))
+	val _ = print (String.concatWith ",\n    " (List.map Trs.prReachs reachsList) ^ "\n--------------------\n")
+    in reachsList
+    end 
 
 fun partitionRules (ctrs, t) = 
     let val ps = T.pos t
@@ -50,9 +56,19 @@ fun getUsableRules ([], t) = []
 fun isGround reachs = List.all (fn (s, t) => T.isGround s) reachs
 
 fun delete (ctrs, reachs) =
-    let val usableRules = List.map (fn (s, t) => getUsableRules (ctrs, s)) reachs
-    in if isGround reachs then (LU.unions usableRules, reachs) else (ctrs, reachs)
-    end 
+    let val _ = print (Trs.prStatus (ctrs, reachs))
+	val usableRules = List.map (fn (s, t) => getUsableRules (ctrs, s)) reachs
+	val usableRulesSet = if isGround reachs then LU.unions usableRules else ctrs
+	val _ = print (Trs.prCRulesDef "==> " usableRulesSet)
+    in usableRulesSet
+    end
+
+fun decompose (ctrs, reachs) =
+    let val _ = print "split:\n"
+	val reachsList = split reachs
+	val _ = print "delete:\n"
+    in List.map (fn rc => (delete (ctrs,rc), rc)) reachsList
+    end
 
 end
 end 

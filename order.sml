@@ -1,5 +1,7 @@
 signature ORDER =
 sig
+    val isDecCtrs: Trs.ctrs -> bool
+    val leReachs: Trs.reach list -> bool
     val ordInf: (Trs.ctrs * Trs.reach list) -> bool 
 end
 
@@ -44,7 +46,29 @@ fun isDecCtrs [] = true
 
 fun leReachs reachs = List.exists (fn reach => not (Subst.isUnif reach) andalso sizele reach) reachs
 					       
-fun ordInf (ctrs, reachs) = isDecCtrs ctrs andalso leReachs reachs
+fun ordInf (ctrs, reachs) =
+    let val _ = print (Trs.prStatus (ctrs, reachs))
+    in if isDecCtrs ctrs andalso leReachs reachs
+       then
+	   let fun prSize t = "|[" ^ Term.toString t ^ "]|"
+	       fun prGt (s,t) = prSize s ^ " > " ^ prSize t
+	       fun prLe (s,t) = prSize s ^ " <= " ^ prSize t
+	       fun prDec [] = []
+		 | prDec ((rule,conds)::rest) =
+		   let val le = List.filter (fn cond => not (Subst.isUnif cond) andalso sizele cond) conds
+		   in if sizegt rule then (prGt rule ^ "\n")::prDec rest else (Trs.prCRule (rule, conds) ^ ": " ^ prLe (hd le) ^ "\n")::prDec rest
+		   end 
+	       val le = List.filter (fn reach => not (Subst.isUnif reach) andalso sizele reach) reachs
+	       val _ = print "==> SUCCESS\n"
+	       val _ = if null ctrs then print ("    " ^ prLe (hd le)) else print ("    " ^ String.concatWith "    " (prDec ctrs) ^ "    " ^ prLe (hd le))
+	       val _ = print ("\n    " ^ Trs.prReachs reachs ^ " is infeasible.\n")
+	   in true
+	   end 
+       else
+	   let val _ = print "==> FAILURE\n"
+	   in false
+	   end 
+    end 
 					       
 end
 end 

@@ -1,7 +1,7 @@
 ============================== Mace4 =================================
 Mace4 (64) version 2009-11A, November 2009.
-Process 1073 was started by takizawa on DESKTOP-L5LN107,
-Mon Dec  1 21:09:07 2025
+Process 534 was started by takizawa on DESKTOP-L5LN107,
+Thu Jan 15 15:32:27 2026
 The command was "./mace4 -f mace.in".
 ============================== end of head ===========================
 
@@ -9,29 +9,50 @@ The command was "./mace4 -f mace.in".
 
 % Reading from file mace.in
 
-assign(max_seconds,2).
+assign(max_seconds,20).
 
 formulas(theory).
 (all x Q(x,x)).
 (all y all x all z (P(x,y) & Q(y,z) -> Q(x,z))).
-(all x all y all x_2 (P(x,y) -> P(add(x,x_2),add(y,x_2)))).
-(all x all x_1 all y (P(x,y) -> P(add(x_1,x),add(x_1,y)))).
-(all x all y all x_2 (P(x,y) -> P(gcd(x,x_2),gcd(y,x_2)))).
-(all x all x_1 all y (P(x,y) -> P(gcd(x_1,x),gcd(x_1,y)))).
-(all x all y (P(x,y) -> P(iadd(x),iadd(y)))).
 (all x all y (P(x,y) -> P(s(x),s(y)))).
-(all x all y all x_2 (P(x,y) -> P(tp2(x,x_2),tp2(y,x_2)))).
-(all x all x_1 all y (P(x,y) -> P(tp2(x_1,x),tp2(x_1,y)))).
-(all x all y (P(x,y) -> P(u1(x),u1(y)))).
-(all x_1 all x_2 all x_3 (Q(iadd(x_1),tp2(x_2,x_3)) -> P(gcd(x_1,x_3),gcd(x_2,x_3)))).
-(all x_1 all x_2 all x_3 (Q(iadd(x_1),tp2(x_2,x_3)) -> P(gcd(x_3,x_1),gcd(x_2,x_3)))).
-(all x_1 P(gcd(x_1,$0),x_1)).
-(all x_1 P(gcd($0,x_1),x_1)).
-(all x_1 P(iadd(x_1),tp2($0,x_1))).
-(all x_1 P(iadd(s(x_1)),u1(iadd(x_1)))).
-(all x_1 all x_2 P(u1(tp2(x_1,x_2)),tp2(s(x_1),x_2))).
-(all x_1 all x_2 P(iadd(add(x_1,x_2)),tp2(x_1,x_2))).
-(all x_1 all x_2 all x_3 all x_4 -(Q(iadd(x_4),tp2(x_1,x_2)) & Q(iadd(x_2),tp2(x_3,x_4)))).
+(all x all y all x_2 (P(x,y) -> P(cons(x,x_2),cons(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(cons(x_1,x),cons(x_1,y)))).
+(all x all y all x_2 (P(x,y) -> P(f(x,x_2),f(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(f(x_1,x),f(x_1,y)))).
+(all x all y all x_2 (P(x,y) -> P(process(x,x_2),process(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(process(x_1,x),process(x_1,y)))).
+(all x all y all x_2 (P(x,y) -> P(sndsplit(x,x_2),sndsplit(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(sndsplit(x_1,x),sndsplit(x_1,y)))).
+(all x all y all x_2 (P(x,y) -> P(leq(x,x_2),leq(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(leq(x_1,x),leq(x_1,y)))).
+(all x all y (P(x,y) -> P(length(x),length(y)))).
+(all x all y (P(x,y) -> P(empty(x),empty(y)))).
+(all x all y all x_2 (P(x,y) -> P(fstsplit(x,x_2),fstsplit(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(fstsplit(x_1,x),fstsplit(x_1,y)))).
+(all x all y all x_2 (P(x,y) -> P(app(x,x_2),app(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(app(x_1,x),app(x_1,y)))).
+(all x all y all x_2 (P(x,y) -> P(map_f(x,x_2),map_f(y,x_2)))).
+(all x all x_1 all y (P(x,y) -> P(map_f(x_1,x),map_f(x_1,y)))).
+(all x_1 P(fstsplit($0,x_1),[])).
+(all x_1 P(fstsplit(s(x_1),[]),[])).
+(all x_1 all x_2 all x_3 P(fstsplit(s(x_2),cons(x_1,x_3)),cons(x_1,fstsplit(x_2,x_3)))).
+(all x_1 P(sndsplit($0,x_1),x_1)).
+(all x_1 P(sndsplit(s(x_1),[]),[])).
+(all x_1 all x_2 all x_3 P(sndsplit(s(x_2),cons(x_1,x_3)),sndsplit(x_2,x_3))).
+P(empty([]),$true).
+(all x_1 all x_2 P(empty(cons(x_1,x_2)),$false)).
+(all x_1 P(leq($0,x_1),$true)).
+(all x_1 P(leq(s(x_1),$0),$false)).
+(all x_1 all x_2 P(leq(s(x_1),s(x_2)),leq(x_1,x_2))).
+P(length([]),$0).
+(all x_1 all x_2 P(length(cons(x_1,x_2)),s(length(x_2)))).
+(all x_1 P(app([],x_1),x_1)).
+(all x_1 all x_2 all x_3 P(app(cons(x_1,x_2),x_3),cons(x_1,app(x_2,x_3)))).
+(all x_1 P(map_f(x_1,[]),[])).
+(all x_1 all x_2 all x_3 P(map_f(x_2,cons(x_1,x_3)),app(f(x_2,x_1),map_f(x_2,x_3)))).
+(all x_1 all x_2 (Q(leq(x_2,length(x_1)),$true) & Q(empty(fstsplit(x_2,x_1)),$false) -> P(process(x_1,x_2),process(app(map_f($self,[]),sndsplit(x_2,x_1)),x_2)))).
+(all x_1 all x_2 (Q(leq(x_2,length(x_1)),$false) & Q(empty(fstsplit(x_2,app(map_f($self,[]),x_1))),$false) -> P(process(x_1,x_2),process(sndsplit(x_2,app(map_f($self,[]),x_1)),x_2)))).
+(all x_1 all x_2 (-Q(empty(fstsplit(x_1,app(map_f($self,[]),x_2))),$false) | -Q(leq(x_1,length(x_2)),$false) | -Q(empty(fstsplit(x_1,x_2)),$false) | -Q(leq(x_1,length(x_2)),$true))).
 end_of_list.
 
 ============================== end of input ==========================
@@ -41,24 +62,43 @@ end_of_list.
 % Formulas that are not ordinary clauses:
 1 (all x Q(x,x)) # label(non_clause).  [assumption].
 2 (all y all x all z (P(x,y) & Q(y,z) -> Q(x,z))) # label(non_clause).  [assumption].
-3 (all x all y all x_2 (P(x,y) -> P(add(x,x_2),add(y,x_2)))) # label(non_clause).  [assumption].
-4 (all x all x_1 all y (P(x,y) -> P(add(x_1,x),add(x_1,y)))) # label(non_clause).  [assumption].
-5 (all x all y all x_2 (P(x,y) -> P(gcd(x,x_2),gcd(y,x_2)))) # label(non_clause).  [assumption].
-6 (all x all x_1 all y (P(x,y) -> P(gcd(x_1,x),gcd(x_1,y)))) # label(non_clause).  [assumption].
-7 (all x all y (P(x,y) -> P(iadd(x),iadd(y)))) # label(non_clause).  [assumption].
-8 (all x all y (P(x,y) -> P(s(x),s(y)))) # label(non_clause).  [assumption].
-9 (all x all y all x_2 (P(x,y) -> P(tp2(x,x_2),tp2(y,x_2)))) # label(non_clause).  [assumption].
-10 (all x all x_1 all y (P(x,y) -> P(tp2(x_1,x),tp2(x_1,y)))) # label(non_clause).  [assumption].
-11 (all x all y (P(x,y) -> P(u1(x),u1(y)))) # label(non_clause).  [assumption].
-12 (all x_1 all x_2 all x_3 (Q(iadd(x_1),tp2(x_2,x_3)) -> P(gcd(x_1,x_3),gcd(x_2,x_3)))) # label(non_clause).  [assumption].
-13 (all x_1 all x_2 all x_3 (Q(iadd(x_1),tp2(x_2,x_3)) -> P(gcd(x_3,x_1),gcd(x_2,x_3)))) # label(non_clause).  [assumption].
-14 (all x_1 P(gcd(x_1,$0),x_1)) # label(non_clause).  [assumption].
-15 (all x_1 P(gcd($0,x_1),x_1)) # label(non_clause).  [assumption].
-16 (all x_1 P(iadd(x_1),tp2($0,x_1))) # label(non_clause).  [assumption].
-17 (all x_1 P(iadd(s(x_1)),u1(iadd(x_1)))) # label(non_clause).  [assumption].
-18 (all x_1 all x_2 P(u1(tp2(x_1,x_2)),tp2(s(x_1),x_2))) # label(non_clause).  [assumption].
-19 (all x_1 all x_2 P(iadd(add(x_1,x_2)),tp2(x_1,x_2))) # label(non_clause).  [assumption].
-20 (all x_1 all x_2 all x_3 all x_4 -(Q(iadd(x_4),tp2(x_1,x_2)) & Q(iadd(x_2),tp2(x_3,x_4)))) # label(non_clause).  [assumption].
+3 (all x all y (P(x,y) -> P(s(x),s(y)))) # label(non_clause).  [assumption].
+4 (all x all y all x_2 (P(x,y) -> P(cons(x,x_2),cons(y,x_2)))) # label(non_clause).  [assumption].
+5 (all x all x_1 all y (P(x,y) -> P(cons(x_1,x),cons(x_1,y)))) # label(non_clause).  [assumption].
+6 (all x all y all x_2 (P(x,y) -> P(f(x,x_2),f(y,x_2)))) # label(non_clause).  [assumption].
+7 (all x all x_1 all y (P(x,y) -> P(f(x_1,x),f(x_1,y)))) # label(non_clause).  [assumption].
+8 (all x all y all x_2 (P(x,y) -> P(process(x,x_2),process(y,x_2)))) # label(non_clause).  [assumption].
+9 (all x all x_1 all y (P(x,y) -> P(process(x_1,x),process(x_1,y)))) # label(non_clause).  [assumption].
+10 (all x all y all x_2 (P(x,y) -> P(sndsplit(x,x_2),sndsplit(y,x_2)))) # label(non_clause).  [assumption].
+11 (all x all x_1 all y (P(x,y) -> P(sndsplit(x_1,x),sndsplit(x_1,y)))) # label(non_clause).  [assumption].
+12 (all x all y all x_2 (P(x,y) -> P(leq(x,x_2),leq(y,x_2)))) # label(non_clause).  [assumption].
+13 (all x all x_1 all y (P(x,y) -> P(leq(x_1,x),leq(x_1,y)))) # label(non_clause).  [assumption].
+14 (all x all y (P(x,y) -> P(length(x),length(y)))) # label(non_clause).  [assumption].
+15 (all x all y (P(x,y) -> P(empty(x),empty(y)))) # label(non_clause).  [assumption].
+16 (all x all y all x_2 (P(x,y) -> P(fstsplit(x,x_2),fstsplit(y,x_2)))) # label(non_clause).  [assumption].
+17 (all x all x_1 all y (P(x,y) -> P(fstsplit(x_1,x),fstsplit(x_1,y)))) # label(non_clause).  [assumption].
+18 (all x all y all x_2 (P(x,y) -> P(app(x,x_2),app(y,x_2)))) # label(non_clause).  [assumption].
+19 (all x all x_1 all y (P(x,y) -> P(app(x_1,x),app(x_1,y)))) # label(non_clause).  [assumption].
+20 (all x all y all x_2 (P(x,y) -> P(map_f(x,x_2),map_f(y,x_2)))) # label(non_clause).  [assumption].
+21 (all x all x_1 all y (P(x,y) -> P(map_f(x_1,x),map_f(x_1,y)))) # label(non_clause).  [assumption].
+22 (all x_1 P(fstsplit($0,x_1),[])) # label(non_clause).  [assumption].
+23 (all x_1 P(fstsplit(s(x_1),[]),[])) # label(non_clause).  [assumption].
+24 (all x_1 all x_2 all x_3 P(fstsplit(s(x_2),cons(x_1,x_3)),cons(x_1,fstsplit(x_2,x_3)))) # label(non_clause).  [assumption].
+25 (all x_1 P(sndsplit($0,x_1),x_1)) # label(non_clause).  [assumption].
+26 (all x_1 P(sndsplit(s(x_1),[]),[])) # label(non_clause).  [assumption].
+27 (all x_1 all x_2 all x_3 P(sndsplit(s(x_2),cons(x_1,x_3)),sndsplit(x_2,x_3))) # label(non_clause).  [assumption].
+28 (all x_1 all x_2 P(empty(cons(x_1,x_2)),$false)) # label(non_clause).  [assumption].
+29 (all x_1 P(leq($0,x_1),$true)) # label(non_clause).  [assumption].
+30 (all x_1 P(leq(s(x_1),$0),$false)) # label(non_clause).  [assumption].
+31 (all x_1 all x_2 P(leq(s(x_1),s(x_2)),leq(x_1,x_2))) # label(non_clause).  [assumption].
+32 (all x_1 all x_2 P(length(cons(x_1,x_2)),s(length(x_2)))) # label(non_clause).  [assumption].
+33 (all x_1 P(app([],x_1),x_1)) # label(non_clause).  [assumption].
+34 (all x_1 all x_2 all x_3 P(app(cons(x_1,x_2),x_3),cons(x_1,app(x_2,x_3)))) # label(non_clause).  [assumption].
+35 (all x_1 P(map_f(x_1,[]),[])) # label(non_clause).  [assumption].
+36 (all x_1 all x_2 all x_3 P(map_f(x_2,cons(x_1,x_3)),app(f(x_2,x_1),map_f(x_2,x_3)))) # label(non_clause).  [assumption].
+37 (all x_1 all x_2 (Q(leq(x_2,length(x_1)),$true) & Q(empty(fstsplit(x_2,x_1)),$false) -> P(process(x_1,x_2),process(app(map_f($self,[]),sndsplit(x_2,x_1)),x_2)))) # label(non_clause).  [assumption].
+38 (all x_1 all x_2 (Q(leq(x_2,length(x_1)),$false) & Q(empty(fstsplit(x_2,app(map_f($self,[]),x_1))),$false) -> P(process(x_1,x_2),process(sndsplit(x_2,app(map_f($self,[]),x_1)),x_2)))) # label(non_clause).  [assumption].
+39 (all x_1 all x_2 (-Q(empty(fstsplit(x_1,app(map_f($self,[]),x_2))),$false) | -Q(leq(x_1,length(x_2)),$false) | -Q(empty(fstsplit(x_1,x_2)),$false) | -Q(leq(x_1,length(x_2)),$true))) # label(non_clause).  [assumption].
 
 ============================== end of process non-clausal formulas ===
 
@@ -67,24 +107,45 @@ end_of_list.
 formulas(mace4_clauses).
 Q(x,x).
 -P(x,y) | -Q(y,z) | Q(x,z).
--P(x,y) | P(add(x,z),add(y,z)).
--P(x,y) | P(add(z,x),add(z,y)).
--P(x,y) | P(gcd(x,z),gcd(y,z)).
--P(x,y) | P(gcd(z,x),gcd(z,y)).
--P(x,y) | P(iadd(x),iadd(y)).
 -P(x,y) | P(s(x),s(y)).
--P(x,y) | P(tp2(x,z),tp2(y,z)).
--P(x,y) | P(tp2(z,x),tp2(z,y)).
--P(x,y) | P(u1(x),u1(y)).
--Q(iadd(x),tp2(y,z)) | P(gcd(x,z),gcd(y,z)).
--Q(iadd(x),tp2(y,z)) | P(gcd(z,x),gcd(y,z)).
-P(gcd(x,$0),x).
-P(gcd($0,x),x).
-P(iadd(x),tp2($0,x)).
-P(iadd(s(x)),u1(iadd(x))).
-P(u1(tp2(x,y)),tp2(s(x),y)).
-P(iadd(add(x,y)),tp2(x,y)).
--Q(iadd(x),tp2(y,z)) | -Q(iadd(z),tp2(u,x)).
+-P(x,y) | P(cons(x,z),cons(y,z)).
+-P(x,y) | P(cons(z,x),cons(z,y)).
+-P(x,y) | P(f(x,z),f(y,z)).
+-P(x,y) | P(f(z,x),f(z,y)).
+-P(x,y) | P(process(x,z),process(y,z)).
+-P(x,y) | P(process(z,x),process(z,y)).
+-P(x,y) | P(sndsplit(x,z),sndsplit(y,z)).
+-P(x,y) | P(sndsplit(z,x),sndsplit(z,y)).
+-P(x,y) | P(leq(x,z),leq(y,z)).
+-P(x,y) | P(leq(z,x),leq(z,y)).
+-P(x,y) | P(length(x),length(y)).
+-P(x,y) | P(empty(x),empty(y)).
+-P(x,y) | P(fstsplit(x,z),fstsplit(y,z)).
+-P(x,y) | P(fstsplit(z,x),fstsplit(z,y)).
+-P(x,y) | P(app(x,z),app(y,z)).
+-P(x,y) | P(app(z,x),app(z,y)).
+-P(x,y) | P(map_f(x,z),map_f(y,z)).
+-P(x,y) | P(map_f(z,x),map_f(z,y)).
+P(fstsplit($0,x),[]).
+P(fstsplit(s(x),[]),[]).
+P(fstsplit(s(x),cons(y,z)),cons(y,fstsplit(x,z))).
+P(sndsplit($0,x),x).
+P(sndsplit(s(x),[]),[]).
+P(sndsplit(s(x),cons(y,z)),sndsplit(x,z)).
+P(empty([]),$true).
+P(empty(cons(x,y)),$false).
+P(leq($0,x),$true).
+P(leq(s(x),$0),$false).
+P(leq(s(x),s(y)),leq(x,y)).
+P(length([]),$0).
+P(length(cons(x,y)),s(length(y))).
+P(app([],x),x).
+P(app(cons(x,y),z),cons(x,app(y,z))).
+P(map_f(x,[]),[]).
+P(map_f(x,cons(y,z)),app(f(x,y),map_f(x,z))).
+-Q(leq(x,length(y)),$true) | -Q(empty(fstsplit(x,y)),$false) | P(process(y,x),process(app(map_f($self,[]),sndsplit(x,y)),x)).
+-Q(leq(x,length(y)),$false) | -Q(empty(fstsplit(x,app(map_f($self,[]),y))),$false) | P(process(y,x),process(sndsplit(x,app(map_f($self,[]),y)),x)).
+-Q(empty(fstsplit(x,app(map_f($self,[]),y))),$false) | -Q(leq(x,length(y)),$false) | -Q(empty(fstsplit(x,y)),$false) | -Q(leq(x,length(y)),$true).
 end_of_list.
 
 ============================== end of clauses for search =============
@@ -93,204 +154,22 @@ end_of_list.
 
 ============================== DOMAIN SIZE 2 =========================
 
+mace4_sig_handler: condition 2
 ============================== STATISTICS ============================
 
 For domain size 2.
 
-Current CPU time: 0.00 seconds (total CPU time: 0.01 seconds).
-Ground clauses: seen=118, kept=114.
-Selections=2, assignments=3, propagations=8, current_models=0.
-Rewrite_terms=106, rewrite_bools=16, indexes=24.
-Rules_from_neg_clauses=2, cross_offs=2.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 3 =========================
-
-============================== STATISTICS ============================
-
-For domain size 3.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.01 seconds).
-Ground clauses: seen=384, kept=375.
-Selections=4, assignments=8, propagations=11, current_models=0.
-Rewrite_terms=313, rewrite_bools=43, indexes=42.
-Rules_from_neg_clauses=0, cross_offs=6.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 4 =========================
-
-============================== STATISTICS ============================
-
-For domain size 4.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.01 seconds).
-Ground clauses: seen=932, kept=916.
-Selections=4, assignments=8, propagations=12, current_models=0.
-Rewrite_terms=582, rewrite_bools=60, indexes=51.
-Rules_from_neg_clauses=0, cross_offs=8.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 5 =========================
-
-============================== STATISTICS ============================
-
-For domain size 5.
-
 Current CPU time: 0.00 seconds (total CPU time: 0.02 seconds).
-Ground clauses: seen=1900, kept=1875.
-Selections=4, assignments=8, propagations=13, current_models=0.
-Rewrite_terms=975, rewrite_bools=77, indexes=60.
-Rules_from_neg_clauses=0, cross_offs=10.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 6 =========================
-
-============================== STATISTICS ============================
-
-For domain size 6.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.02 seconds).
-Ground clauses: seen=3450, kept=3414.
-Selections=4, assignments=8, propagations=14, current_models=0.
-Rewrite_terms=1516, rewrite_bools=94, indexes=69.
-Rules_from_neg_clauses=0, cross_offs=12.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 7 =========================
-
-============================== STATISTICS ============================
-
-For domain size 7.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.03 seconds).
-Ground clauses: seen=5768, kept=5719.
-Selections=4, assignments=8, propagations=15, current_models=0.
-Rewrite_terms=2229, rewrite_bools=111, indexes=78.
-Rules_from_neg_clauses=0, cross_offs=14.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 8 =========================
-
-============================== STATISTICS ============================
-
-For domain size 8.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.05 seconds).
-Ground clauses: seen=9064, kept=9000.
-Selections=4, assignments=8, propagations=16, current_models=0.
-Rewrite_terms=3138, rewrite_bools=128, indexes=87.
-Rules_from_neg_clauses=0, cross_offs=16.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 9 =========================
-
-============================== STATISTICS ============================
-
-For domain size 9.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.07 seconds).
-Ground clauses: seen=13572, kept=13491.
-Selections=4, assignments=8, propagations=17, current_models=0.
-Rewrite_terms=4267, rewrite_bools=145, indexes=96.
-Rules_from_neg_clauses=0, cross_offs=18.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 10 ========================
-
-============================== STATISTICS ============================
-
-For domain size 10.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.10 seconds).
-Ground clauses: seen=19550, kept=19450.
-Selections=4, assignments=8, propagations=18, current_models=0.
-Rewrite_terms=5640, rewrite_bools=162, indexes=105.
-Rules_from_neg_clauses=0, cross_offs=20.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 11 ========================
-
-============================== STATISTICS ============================
-
-For domain size 11.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.13 seconds).
-Ground clauses: seen=27280, kept=27159.
-Selections=4, assignments=8, propagations=19, current_models=0.
-Rewrite_terms=7281, rewrite_bools=179, indexes=114.
-Rules_from_neg_clauses=0, cross_offs=22.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 12 ========================
-
-============================== STATISTICS ============================
-
-For domain size 12.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.19 seconds).
-Ground clauses: seen=37068, kept=36924.
-Selections=4, assignments=8, propagations=20, current_models=0.
-Rewrite_terms=9214, rewrite_bools=196, indexes=123.
-Rules_from_neg_clauses=0, cross_offs=24.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 13 ========================
-
-============================== STATISTICS ============================
-
-For domain size 13.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.28 seconds).
-Ground clauses: seen=49244, kept=49075.
-Selections=4, assignments=8, propagations=21, current_models=0.
-Rewrite_terms=11463, rewrite_bools=213, indexes=132.
-Rules_from_neg_clauses=0, cross_offs=26.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 14 ========================
-
-============================== STATISTICS ============================
-
-For domain size 14.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.36 seconds).
-Ground clauses: seen=64162, kept=63966.
-Selections=4, assignments=8, propagations=22, current_models=0.
-Rewrite_terms=14052, rewrite_bools=230, indexes=141.
-Rules_from_neg_clauses=0, cross_offs=28.
-
-============================== end of statistics =====================
-
-============================== DOMAIN SIZE 15 ========================
-
-mace4_sig_handler: condition 2
-============================== STATISTICS ============================
-
-For domain size 15.
-
-Current CPU time: 0.00 seconds (total CPU time: 0.37 seconds).
-Ground clauses: seen=3847, kept=3621.
-Selections=0, assignments=0, propagations=15, current_models=0.
-Rewrite_terms=0, rewrite_bools=15, indexes=0.
+Ground clauses: seen=224, kept=220.
+Selections=1475, assignments=2930, propagations=124, current_models=0.
+Rewrite_terms=29978, rewrite_bools=14780, indexes=1026.
 Rules_from_neg_clauses=0, cross_offs=0.
 
 ============================== end of statistics =====================
 
-User_CPU=0.37, System_CPU=0.00, Wall_clock=0.
+User_CPU=0.02, System_CPU=0.00, Wall_clock=0.
 
 Exiting with failure.
 
-Process 1073 exit (mace_sigint) Mon Dec  1 21:09:07 2025
-The process finished Mon Dec  1 21:09:07 2025
+Process 534 exit (mace_sigint) Thu Jan 15 15:32:27 2026
+The process finished Thu Jan 15 15:32:27 2026

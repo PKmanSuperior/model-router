@@ -1,6 +1,7 @@
 signature MAIN =
 sig
-    val main: (Trs.ctrs * Trs.reach list) -> bool
+    val main: (Trs.ctrs * Trs.reach list) -> int -> bool
+    val sub: (Trs.ctrs * Trs.reach list) -> bool
     val all: (string -> bool) -> string -> unit
 end
 
@@ -23,25 +24,41 @@ local
     structure F = Form
 in
 
-fun decompose (ctrs, reachs) =
-    let val reachsList = Decomp.split reachs
-    in List.map (fn rc => Decomp.delete (ctrs,rc)) reachsList
+fun select (ctrs, reachs) timeout =
+    let val _ = print "FOL eocoding(replace '->' => 'P', '->*' => 'Q'):\n"
+	val forms = Trans.getTheory ctrs @ [Trans.getInfeasibility reachs]
+	val formsStr = Form.prForms forms
+	val _ = print (Trs.prStatus (ctrs, reachs) ^ "==>" ^ String.substring (formsStr, 3, size formsStr - 3) ^ "--------------------\n")
+    in if Criterion.proc ctrs reachs then Ages.ages forms timeout else Mace.mace forms (timeout div 2) orelse Ages.ages forms (timeout div 2)
     end
 
-fun main (ctrs, reachs) =
-    let val problems = decompose (ctrs,reachs)
-    in if List.exists Order.ordInf problems then true else false
+fun sub (ctrs, reachs) =
+    let val problems = Decomp.decompose (ctrs,reachs)
+    in List.exists (fn (R, p) => Criterion.proc R p) problems
     end 
-(*
-fun main forms timeout1 timeout2 = if Inf.checkInfProp forms (IntInf.fromInt timeout1)
-				   then
-				       let val _ = OS.Process.sleep (Time.fromSeconds 1)
-				       in Ages.ages forms timeout2
-				       end 							
-				   else let val _ = OS.Process.sleep (Time.fromSeconds 1)
-					    in Mace.mace forms timeout2
-					end
-*)
+																	     
+fun main (ctrs, reachs) timeout =
+    let val _ = print (Trs.prCRulesDef "R = " ctrs ^ "\nStart verifying whether " ^ Trs.prReachs reachs ^ " is R-infeasible.\n--------------------\n")
+	val problems = Decomp.decompose (ctrs,reachs)
+	val _ = print ("\n" ^ "ordering check:\n")
+    in if List.exists Order.ordInf problems
+       then
+	   let val _ = print ("--------------------\n" ^ Trs.prReachs reachs ^ " is R-infeasible\n")
+	   in true
+	   end
+       else
+	   let val _ = print "--------------------\n"
+	   in if List.exists (fn problem => select problem (timeout div (length problems))) problems
+	      then
+		  let val _ = print ("--------------------\n" ^ Trs.prReachs reachs ^ " is R-infeasible.\n")
+		  in true
+		  end
+	      else
+		  let val _ = print ("--------------------\n" ^ "R-infeasibility of " ^ Trs.prReachs reachs ^ " is unknown.\n")
+		  in false
+		  end
+	   end 
+    end 
 
 fun all f directry =
     let val dir = OS.FileSys.openDir directry
@@ -61,7 +78,7 @@ fun all f directry =
 	    let val path = directry ^ "/" ^ file
 		val _ = print (file ^ "\n")
 		val result = f path
-		val status = if result then TextIO.output (outStream, file ^ ":true\n") else TextIO.output (outStream, file ^ ":false\n") 
+		val status = if result then TextIO.output (outStream, file ^ ": true\n") else TextIO.output (outStream, file ^ ": false\n")
 	    in loop rest
 	    end
 	val files = sort (read ())

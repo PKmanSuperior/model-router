@@ -14,14 +14,20 @@ sig
     val prRule: rl -> string
     val rdRule: string -> rl
 
-    val prEq: Term.term * Term.term -> string
+    val prConds: Term.term * Term.term -> string
 
     val prRules: trs -> string
     val rdRules: string -> trs
 
     val prCRule: crl -> string
     val prCRules: ctrs -> string
+    val prCRulesDef: string -> ctrs -> string
 
+    val prReach: reach -> string
+    val prReachs: reach list -> string
+
+    val prStatus: ctrs * reach list -> string
+ 
     val vars: reach -> Var.key list
 end
 
@@ -44,17 +50,24 @@ type reach = T.term * T.term
 fun prRule (l,r) = (Term.toString l) ^ " -> " ^ (Term.toString r)
 fun rdRule str = T.readKeySeparatedTermPair "->" str
 
-fun prEq (l,r) = (Term.toString l) ^ " = " ^ (Term.toString r)
+fun prConds (l,r) = (Term.toString l) ^ " == " ^ (Term.toString r)
 
-fun prRules rs = ListUtil.toStringCommaLnSquare prRule rs
+fun prRules rs = ListUtil.toStringCommaLnSquareSpace prRule rs
 fun rdRules str = T.readMultipleKeySepartedTermPairs ("[",",","]") "->" str
 
 fun prCRule (rule,conds) = if null conds
 			   then prRule rule
-			   else prRule rule ^ " <= " ^ String.concatWith ", " (List.map prEq conds)
+			   else prRule rule ^ " | " ^ String.concatWith ", " (List.map prConds conds)
 
-fun prCRules ctrs = LU.toStringCommaLnSquare prCRule ctrs
+fun prCRules ctrs = LU.toStringCommaLnSquareSpace prCRule ctrs
+fun prCRulesDef str ctrs = LU.toStringCommaLnSquare str prCRule ctrs
 
+fun prReach (s,t) = (Term.toString s) ^ " ->* " ^ (Term.toString t)
+
+fun prReachs reachs = "< " ^ String.concatWith " /\\ " (List.map prReach reachs) ^ " >"
+
+fun prStatus (ctrs, reachs) = prCRules ctrs ^ "      " ^ prReachs reachs ^ "\n"
+	     
 fun vars (s,t) = LU.union (T.vars s, T.vars t)
 	
 end (* of local *)
